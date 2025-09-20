@@ -541,23 +541,28 @@ const confirmReservation = asyncHandler(async (req, res) => {
       skip_confirmation_email: true,
     };
 
-    console.log(formattedReservation);
-
-    const response = await hqApi.post(
-      "car-rental/reservations/confirm",
-      formattedReservation
-    );
+    let response;
+    if (reservation.reservation_id) {
+      response = await hqApi.get(
+        `/car-rental/reservations/${reservation?.reservation_id}`
+      );
+    } else {
+      response = await hqApi.post(
+        "car-rental/reservations/confirm",
+        formattedReservation
+      );
+    }
 
     if (response?.status == 200) {
       const id = response?.data?.data?.reservation?.id;
-
       reservation.reservation_id = id;
       await reservation.save();
-
       const response2 = await hqApi.post(
         `/car-rental/reservations/${id}/pending`
       );
     }
+
+
     res.status(200).json(response?.data);
   } catch (error) {
     console.error("Error confirming reservation:", error);
@@ -571,34 +576,29 @@ const confirmReservation = asyncHandler(async (req, res) => {
 //@Router POST /reservations/process-payment
 //@access Private
 const processPayment = asyncHandler(async (req, res) => {
-    try {
-        const {
-            amount,
-            item_id,
-            label,
-            description,
-            external_redirect
-        } = req.query;
+  try {
+    const { amount, item_id, label, description, external_redirect } =
+      req.query;
 
-        const paymentUrl = `/payment-gateways/payment-transactions`;
+    const paymentUrl = `/payment-gateways/payment-transactions`;
 
-        const response = await hqApi.post(paymentUrl, {
-            amount,
-            item_type : 'car_rental.reservations',
-            item_id,
-            payment_method_id : 1,
-            label,
-            description,
-            external_redirect
-        });
+    const response = await hqApi.post(paymentUrl, {
+      amount,
+      item_type: "car_rental.reservations",
+      item_id,
+      payment_method_id: 1,
+      label,
+      description,
+      external_redirect,
+    });
 
-        res.status(200).json(response?.data);
-    } catch (error) {
-        console.error('Error processing payment:', error);
-        res.status(error.response?.status || 500).json({
-            message: error.response?.data?.message || 'Failed to process payment',
-        });
-    }
+    res.status(200).json(response?.data);
+  } catch (error) {
+    console.error("Error processing payment:", error);
+    res.status(error.response?.status || 500).json({
+      message: error.response?.data?.message || "Failed to process payment",
+    });
+  }
 });
 
 //@DESC Get Reservation Details
@@ -607,9 +607,9 @@ const processPayment = asyncHandler(async (req, res) => {
 const getReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
-    console.log(reservationAttemptId)
+    console.log(reservationAttemptId);
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
-    console.log(reservation)
+    console.log(reservation);
 
     const response = await hqApi.get(
       `/car-rental/reservations/${reservation?.reservation_id}`
@@ -685,5 +685,5 @@ module.exports = {
   getReservationAttempt,
   getReservation,
   confirmReservation,
-  processPayment
+  processPayment,
 };
