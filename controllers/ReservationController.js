@@ -525,34 +525,35 @@ const confirmReservation = asyncHandler(async (req, res) => {
     const reservationAttemptId = req.reservationAttemptId;
     console.log(reservationAttemptId);
 
-    const reservation = await ReservationAttempt.findById(
-      reservationAttemptId
-    );
+    const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
     const formattedReservation = {
       pick_up_date: reservation?.pick_up_date,
       return_date: reservation?.return_date,
-      pick_up_location: reservation?.pick_up_location.id, 
-      return_location: reservation?.return_location.id, 
+      pick_up_location: reservation?.pick_up_location.id,
+      return_location: reservation?.return_location.id,
       pick_up_time: reservation?.pick_up_time,
       return_time: reservation?.return_time,
       brand_id: reservation?.brand_id,
-      vehicle_class_id: reservation?.vehicle_class_id, 
+      vehicle_class_id: reservation?.vehicle_class_id,
       additional_charges: reservation?.selected_additional_charges,
-      customer_id: reservation?.customer_id, 
+      customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
     };
 
     console.log(formattedReservation);
 
-    const response = await hqApi.post("car-rental/reservations/confirm", formattedReservation);
+    const response = await hqApi.post(
+      "car-rental/reservations/confirm",
+      formattedReservation
+    );
 
     if (response?.status == 200) {
       const id = response?.data?.data?.reservation?.id;
 
       reservation.reservation_id = id;
       await reservation.save();
-      
+
       const response2 = await hqApi.post(
         `/car-rental/reservations/${id}/pending`
       );
@@ -566,14 +567,53 @@ const confirmReservation = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Process Payment Transaction
+//@Router POST /reservations/process-payment
+//@access Private
+const processPayment = asyncHandler(async (req, res) => {
+    try {
+        const {
+            amount,
+            item_id,
+            label,
+            description,
+            external_redirect
+        } = req.query;
+
+        const paymentUrl = `/payment-gateways/payment-transactions`;
+
+        const response = await hqApi.post(paymentUrl, {
+            amount,
+            item_type : 'car_rental.reservations',
+            item_id,
+            payment_method_id : 1,
+            label,
+            description,
+            external_redirect
+        });
+
+        res.status(200).json(response?.data);
+    } catch (error) {
+        console.error('Error processing payment:', error);
+        res.status(error.response?.status || 500).json({
+            message: error.response?.data?.message || 'Failed to process payment',
+        });
+    }
+});
+
 //@DESC Get Reservation Details
-//@ROUTER GET /car-rental/get-reservation/:id
+//@ROUTER GET /car-rental/get-reservation/
 //@ACCESS Private
 const getReservation = asyncHandler(async (req, res) => {
   try {
-    const { id } = req.params;
+    const reservationAttemptId = req.reservationAttemptId;
+    console.log(reservationAttemptId)
+    const reservation = await ReservationAttempt.findById(reservationAttemptId);
+    console.log(reservation)
 
-    const response = await hqApi.get(`/car-rental/reservations/${id}`);
+    const response = await hqApi.get(
+      `/car-rental/reservations/${reservation?.reservation_id}`
+    );
 
     res.status(response?.status || 200).json(response?.data);
   } catch (error) {
@@ -645,4 +685,5 @@ module.exports = {
   getReservationAttempt,
   getReservation,
   confirmReservation,
+  processPayment
 };
