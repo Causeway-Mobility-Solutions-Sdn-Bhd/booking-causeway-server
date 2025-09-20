@@ -8,7 +8,7 @@ const FileRoute = require("./routes/FileRoute");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { connectDB } = require("./db/config");
+const connectDB  = require("./db/config");
 
 connectDB();
 const app = express();
