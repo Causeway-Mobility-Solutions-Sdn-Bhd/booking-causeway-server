@@ -50,6 +50,10 @@ const ReservationAttemptSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    reservation_id: {
+      type: Number,
+      required: false,
+    },
   },
   {
     timestamps: true,

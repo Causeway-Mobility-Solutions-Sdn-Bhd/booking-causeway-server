@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { validateDatesAndListVehicleClasses , getAdditionalCharges ,  checkAdditionalCharges, getReservationAttempt} = require('../controllers/ReservationController')
+const { validateDatesAndListVehicleClasses , getAdditionalCharges ,  checkAdditionalCharges, getReservationAttempt  , getReservation , confirmReservation} = require('../controllers/ReservationController')
 const { apiKeyAuth } = require('../middleware/apiKeyAuth')
 const { reservationAttempt } = require('../middleware/reservationAttempt')
 
@@ -10,6 +10,8 @@ router.post('/reservations/dates' , apiKeyAuth ,  reservationAttempt  ,  validat
 router.get('/reservations/additional-charges' , apiKeyAuth , reservationAttempt ,  getAdditionalCharges)
 router.post('/reservations/additional-charges' , apiKeyAuth ,  reservationAttempt ,  checkAdditionalCharges)
 router.get('/reservations/reservation-attempts' , apiKeyAuth ,  reservationAttempt ,  getReservationAttempt)
+router.post('/reservations/conform-reservation' , apiKeyAuth ,  reservationAttempt ,  confirmReservation)
+router.get('/reservations/get-reservation' , apiKeyAuth ,  reservationAttempt ,  getReservation)
 
 
 module.exports = router

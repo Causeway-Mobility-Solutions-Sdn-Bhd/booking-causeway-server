@@ -184,13 +184,11 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
           (savedReservation.return_date = reservation?.return_date),
           (savedReservation.return_time = reservation?.return_time),
           (savedReservation.return_location = reservation?.return_location),
-        await savedReservation.save();
+          await savedReservation.save();
       } else {
-        return res
-          .status(400)
-          .json({
-            message: `In selected Date Range Selected vehicle not available`,
-          });
+        return res.status(400).json({
+          message: `In selected Date Range Selected vehicle not available`,
+        });
       }
     }
 
@@ -397,7 +395,7 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
   }
 });
 
-//@DESC Get Available Vehicles In Specific Locations and Date Time
+//@DESC Get Total Price Based on Selected Additional Charges
 //@Router POST /car-rental/reservations/additional-charges
 //@access Private
 const checkAdditionalCharges = asyncHandler(async (req, res) => {
@@ -519,6 +517,74 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Conform Reservation
+//@ROUTER POST /car-rental/conform-reservation
+//@ACCESS Private
+const confirmReservation = asyncHandler(async (req, res) => {
+  try {
+    const reservationAttemptId = req.reservationAttemptId;
+    console.log(reservationAttemptId);
+
+    const reservation = await ReservationAttempt.findById(
+      reservationAttemptId
+    );
+
+    const formattedReservation = {
+      pick_up_date: reservation?.pick_up_date,
+      return_date: reservation?.return_date,
+      pick_up_location: reservation?.pick_up_location.id, 
+      return_location: reservation?.return_location.id, 
+      pick_up_time: reservation?.pick_up_time,
+      return_time: reservation?.return_time,
+      brand_id: reservation?.brand_id,
+      vehicle_class_id: reservation?.vehicle_class_id, 
+      additional_charges: reservation?.selected_additional_charges,
+      customer_id: reservation?.customer_id, 
+      skip_confirmation_email: true,
+    };
+
+    console.log(formattedReservation);
+
+    const response = await hqApi.post("car-rental/reservations/confirm", formattedReservation);
+
+    if (response?.status == 200) {
+      const id = response?.data?.data?.reservation?.id;
+
+      reservation.reservation_id = id;
+      await reservation.save();
+      
+      const response2 = await hqApi.post(
+        `/car-rental/reservations/${id}/pending`
+      );
+    }
+    res.status(200).json(response?.data);
+  } catch (error) {
+    console.error("Error confirming reservation:", error);
+    res.status(error.response?.status || 500).json({
+      message: error.response?.data?.message || "Failed to confirm reservation",
+    });
+  }
+});
+
+//@DESC Get Reservation Details
+//@ROUTER GET /car-rental/get-reservation/:id
+//@ACCESS Private
+const getReservation = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const response = await hqApi.get(`/car-rental/reservations/${id}`);
+
+    res.status(response?.status || 200).json(response?.data);
+  } catch (error) {
+    console.error("Error fetching reservation details:", error);
+    res.status(error.response?.status || 500).json({
+      message:
+        error.response?.data?.message || "Failed to fetch reservation details",
+    });
+  }
+});
+
 // @DESC   Get a Reservation Attempt by ID
 // @ROUTE  GET /car-rental/reservations/reservation-attempts
 // @ACCESS Private
@@ -577,4 +643,6 @@ module.exports = {
   getAdditionalCharges,
   checkAdditionalCharges,
   getReservationAttempt,
+  getReservation,
+  confirmReservation,
 };
