@@ -12,13 +12,6 @@ const reservationAttempt = (req, res, next) => {
   // }
   
   const reservationAttemptLocalId = req.headers["reservation-attempt-id"];
-  if (!reservationAttemptLocalId) {
-    return res.status(404).json({
-      success: false,
-      message: "Reservation Attempt ID not found",
-    });
-  }
-
   req.reservationAttemptId = reservationAttemptLocalId;
 
   next();
