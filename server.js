@@ -4,6 +4,7 @@ const fleetsRoute = require("./routes/Fleets.Route");
 const reservationRoute = require("./routes/Reservation.Route");
 const CustomerRoute = require("./routes/Customer.Route");
 const FileRoute = require("./routes/File.Route");
+const AuthRoute = require("./routes/Auth.Route");
 
 const express = require("express");
 const cors = require("cors");
@@ -54,6 +55,7 @@ app.use("/api/fleets", fleetsRoute);
 app.use("/api/car-rental", reservationRoute);
 app.use("/api/customers", CustomerRoute);
 app.use("/api/file", FileRoute);
+app.use("/api/auth", AuthRoute);
 
 const port = process.env.PORT || 5000;
 
