@@ -68,7 +68,6 @@ const VerifyEmail = asyncHandler(async (req, res) => {
 
     // Find user by token
     const user = await Usermodel.findOne({ verficationToken: code });
-    verificationToken
 
     if (!user) {
       return res.status(400).json({
