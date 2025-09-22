@@ -1,6 +1,6 @@
 const express = require('express')
 
-const { uploadFile  } = require('../controllers/FileController')
+const { uploadFile  } = require('../controllers/File.Controller')
 const { apiKeyAuth } = require('../middleware/apiKeyAuth')
 
 

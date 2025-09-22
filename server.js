@@ -1,9 +1,9 @@
 require("dotenv").config();
 
-const fleetsRoute = require("./routes/FleetsRoute");
-const reservationRoute = require("./routes/ReservationRoute");
-const CustomerRoute = require("./routes/CustomerRoute");
-const FileRoute = require("./routes/FileRoute");
+const fleetsRoute = require("./routes/Fleets.Route");
+const reservationRoute = require("./routes/Reservation.Route");
+const CustomerRoute = require("./routes/Customer.Route");
+const FileRoute = require("./routes/File.Route");
 
 const express = require("express");
 const cors = require("cors");
