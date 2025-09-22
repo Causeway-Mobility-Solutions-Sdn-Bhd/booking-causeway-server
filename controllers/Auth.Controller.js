@@ -57,12 +57,16 @@ const Reigster = asyncHandler(async (req, res) => {
       .json({ success: false, message: "internal server error" });
   }
 });
-const VerfiyEmail = asyncHandler(async (req, res) => {
+
+//@DESC Verify Email
+//@Route POST /auth/verify
+//@Access Private
+const VerifyEmail = asyncHandler(async (req, res) => {
   try {
     const { code } = req.body;
-
     console.log("Received verification code:", code);
 
+    // Find user by token
     const user = await Usermodel.findOne({ verficationToken: code });
 
     if (!user) {
@@ -72,16 +76,22 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
       });
     }
 
-    if (new Date(user.verficationTokenExpiresAt) < Date.now()) {
+    // Check if token expired
+    if (
+      !user.verficationTokenExpiresAt ||
+      new Date(user.verficationTokenExpiresAt) < Date.now()
+    ) {
       return res.status(400).json({
         success: false,
         message: "OTP expired. Please request a new one.",
       });
     }
 
+    // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    // Update user fields
     user.isVerified = true;
     user.verficationToken = "";
     user.verficationTokenExpiresAt = undefined;
@@ -90,7 +100,13 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
 
-    res.status(200).json({
+    // Send welcome email (non-blocking)
+    senWelcomeEmail(user.email, name).catch((err) =>
+      console.error("Failed to send welcome email:", err.message)
+    );
+
+    return res.status(200).json({
+      success: true,
       message: "User verified successfully",
       accessToken,
       user: {
@@ -99,13 +115,6 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
         email: user.email,
       },
     });
-
-    // Send email AFTER response so it won't block user flow
-    try {
-      await senWelcomeEmail(user.email, name);
-    } catch (err) {
-      console.error("Failed to send welcome email:", err.message);
-    }
   } catch (error) {
     console.error("VerifyEmail error:", error);
     return res
@@ -113,6 +122,7 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 });
+
 
 //@DESC Resend Verification Code
 //@Route POST /auth/resend-verification
@@ -286,7 +296,7 @@ const RefreshToken = asyncHandler(async (req, res) => {
 
 module.exports = {
   Reigster,
-  VerfiyEmail,
+  VerifyEmail,
   Login,
   RefreshToken,
   ResendVerification,
