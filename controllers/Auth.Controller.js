@@ -81,8 +81,6 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
       });
     }
 
-    console.log("verify");
-    // Tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
@@ -97,7 +95,7 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
     await senWelcomeEmail(user.email, name);
 
     res
-      .cookie("refreshToken", refreshToken, cookieOptions)
+      // .cookie("refreshToken", refreshToken, cookieOptions)
       .status(200)
       .json({
         message: "User verified successfully",
