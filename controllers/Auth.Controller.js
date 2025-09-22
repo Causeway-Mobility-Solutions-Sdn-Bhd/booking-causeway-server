@@ -68,6 +68,7 @@ const VerifyEmail = asyncHandler(async (req, res) => {
 
     // Find user by token
     const user = await Usermodel.findOne({ verficationToken: code });
+    verificationToken
 
     if (!user) {
       return res.status(400).json({
@@ -79,7 +80,7 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     // Check if token expired
     if (
       !user.verficationTokenExpiresAt ||
-      new Date(user.verficationTokenExpiresAt) < Date.now()
+      user.verficationTokenExpiresAt.getTime() < Date.now()
     ) {
       return res.status(400).json({
         success: false,
