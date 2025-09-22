@@ -7,11 +7,12 @@ const {
 } = require("../lib/generateTokens.js");
 const cookieOptions = require("../lib/cookieOption.js");
 const jwt = require("jsonwebtoken");
+const asyncHandler = require("express-async-handler");
 
 //@DESC Register
 //@Route POST /auth/register
 //@Access Private
-const Reigster = async (req, res) => {
+const Reigster = asyncHandler(async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
     if (!email || !password || !firstName || !lastName) {
@@ -35,7 +36,7 @@ const Reigster = async (req, res) => {
       firstName,
       lastName,
       verficationToken,
-      verficationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
+      verficationTokenExpiresAt: Date.now() + 60 * 1000,
     });
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
@@ -55,28 +56,38 @@ const Reigster = async (req, res) => {
       .status(400)
       .json({ success: false, message: "internal server error" });
   }
-};
+});
 
-//@DESC Register
+//@DESC Verify Email
 //@Route POST /auth/verify
 //@Access Private
-const VerfiyEmail = async (req, res) => {
+const VerfiyEmail = asyncHandler(async (req, res) => {
   try {
     const { code } = req.body;
-    const user = await Usermodel.findOne({
-      verficationToken: code,
-      verficationTokenExpiresAt: { $gt: Date.now() },
-    });
+
+    const user = await Usermodel.findOne({ verficationToken: code });
+
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Inavlid or Expired Code" });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid verification code",
+      });
     }
 
+    if (user.verficationTokenExpiresAt < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please request a new one.",
+      });
+    }
+
+    console.log("verify");
+    // Tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
     user.isVerified = true;
+    user.verficationToken = "";
     user.verficationTokenExpiresAt = undefined;
     user.refreshToken = refreshToken;
 
@@ -87,9 +98,9 @@ const VerfiyEmail = async (req, res) => {
 
     res
       .cookie("refreshToken", refreshToken, cookieOptions)
-      .status(201)
+      .status(200)
       .json({
-        message: "User registered successfully",
+        message: "User verified successfully",
         accessToken,
         user: {
           id: user._id,
@@ -100,15 +111,63 @@ const VerfiyEmail = async (req, res) => {
   } catch (error) {
     console.log(error);
     return res
-      .status(400)
-      .json({ success: false, message: "internal server error" });
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
-};
+});
+
+//@DESC Resend Verification Code
+//@Route POST /auth/resend-verification
+//@Access Private
+const ResendVerification = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await Usermodel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "User already verified. Please login.",
+      });
+    }
+
+    const verficationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+
+    user.verficationToken = verficationToken;
+    user.verficationTokenExpiresAt = Date.now() + 60 * 1000; // 1 min
+
+    await user.save();
+
+    const name = `${user.firstName} ${user.lastName}`;
+    await sendVerificationEamil(user.email, verficationToken);
+
+    return res.status(200).json({
+      success: true,
+      message: "New verification code sent to your email",
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
 
 //@DESC Register
 //@Route POST /auth/login
 //@Access Private
-const Login = async (req, res) => {
+const Login = asyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -164,12 +223,12 @@ const Login = async (req, res) => {
       .status(500)
       .json({ success: false, message: "Internal server error" });
   }
-};
+});
 
 //@DESC Register
 //@Route POST /auth/refresh/token
 //@Access Private
-const RefreshToken = async (req, res) => {
+const RefreshToken = asyncHandler(async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
 
@@ -226,6 +285,6 @@ const RefreshToken = async (req, res) => {
       .status(500)
       .json({ success: false, message: "Internal server error" });
   }
-};
+});
 
-module.exports = { Reigster, VerfiyEmail, Login, RefreshToken };
+module.exports = { Reigster, VerfiyEmail, Login, RefreshToken , ResendVerification };
