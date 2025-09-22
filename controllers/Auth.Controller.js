@@ -119,7 +119,7 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     console.error("VerifyEmail error:", error);
     return res
       .status(500)
-      .json({ success: false, message: "Internal server error" });
+      .json({ success: false, message: error});
   }
 });
 
