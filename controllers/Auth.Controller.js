@@ -57,13 +57,11 @@ const Reigster = asyncHandler(async (req, res) => {
       .json({ success: false, message: "internal server error" });
   }
 });
-
-//@DESC Verify Email
-//@Route POST /auth/verify
-//@Access Private
 const VerfiyEmail = asyncHandler(async (req, res) => {
   try {
     const { code } = req.body;
+
+    console.log("Received verification code:", code);
 
     const user = await Usermodel.findOne({ verficationToken: code });
 
@@ -74,7 +72,7 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
       });
     }
 
-    if (user.verficationTokenExpiresAt < Date.now()) {
+    if (new Date(user.verficationTokenExpiresAt) < Date.now()) {
       return res.status(400).json({
         success: false,
         message: "OTP expired. Please request a new one.",
@@ -92,22 +90,24 @@ const VerfiyEmail = asyncHandler(async (req, res) => {
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
 
-    await senWelcomeEmail(user.email, name);
+    res.status(200).json({
+      message: "User verified successfully",
+      accessToken,
+      user: {
+        id: user._id,
+        fullName: name,
+        email: user.email,
+      },
+    });
 
-    res
-      // .cookie("refreshToken", refreshToken, cookieOptions)
-      .status(200)
-      .json({
-        message: "User verified successfully",
-        accessToken,
-        user: {
-          id: user._id,
-          fullName: name,
-          email: user.email,
-        },
-      });
+    // Send email AFTER response so it won't block user flow
+    try {
+      await senWelcomeEmail(user.email, name);
+    } catch (err) {
+      console.error("Failed to send welcome email:", err.message);
+    }
   } catch (error) {
-    console.log(error);
+    console.error("VerifyEmail error:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
@@ -129,7 +129,6 @@ const ResendVerification = asyncHandler(async (req, res) => {
         message: "User not found",
       });
     }
-
 
     if (user.isVerified) {
       return res.status(400).json({
@@ -285,4 +284,10 @@ const RefreshToken = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { Reigster, VerfiyEmail, Login, RefreshToken , ResendVerification };
+module.exports = {
+  Reigster,
+  VerfiyEmail,
+  Login,
+  RefreshToken,
+  ResendVerification,
+};
