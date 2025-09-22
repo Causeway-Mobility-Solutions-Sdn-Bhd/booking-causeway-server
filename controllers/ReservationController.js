@@ -246,14 +246,14 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       );
     }
 
-    // if (isCreate) {
-    //   res.cookie("ssid", savedReservation._id.toString(), {
-    //     httpOnly: true,
-    //     secure: true,
-    //     sameSite: "None",
-    //     maxAge: 24 * 60 * 60 * 1000,
-    //   });
-    // }
+    if (isCreate) {
+      res.cookie("ssid", savedReservation._id.toString(), {
+        httpOnly: true,
+        secure: true,
+        sameSite: "None",
+        maxAge: 24 * 60 * 60 * 1000,
+      });
+    }
 
     res.status(200).json({
       reservation: savedReservation,

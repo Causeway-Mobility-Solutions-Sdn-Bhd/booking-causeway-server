@@ -16,6 +16,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "https://staging-causewaymy.vercel.app",
+  "https://apistaging-causewaymy.vercel.app"
 ];
 app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
