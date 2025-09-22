@@ -13,8 +13,8 @@ const jwt = require("jsonwebtoken");
 //@Access Private
 const Reigster = async (req, res) => {
   try {
-    const { email, password, name } = req.body;
-    if (!email || !password || !name) {
+    const { email, password, firstName, lastName } = req.body;
+    if (!email || !password || !firstName || !lastName) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
@@ -32,15 +32,23 @@ const Reigster = async (req, res) => {
     const user = new Usermodel({
       email,
       password: hasePassowrd,
-      name,
+      firstName,
+      lastName,
       verficationToken,
       verficationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
     });
+    const name = `${user.firstName} ${user.lastName}`;
     await user.save();
     await sendVerificationEamil(user.email, verficationToken);
-    return res
-      .status(200)
-      .json({ success: true, message: "User Register Successfully", user });
+    return res.status(200).json({
+      success: true,
+      message: "User Register Successfully",
+      user: {
+        id: user._id,
+        fullName: name,
+        email: user.email,
+      },
+    });
   } catch (error) {
     console.log(error);
     return res
@@ -71,9 +79,11 @@ const VerfiyEmail = async (req, res) => {
     user.isVerified = true;
     user.verficationTokenExpiresAt = undefined;
     user.refreshToken = refreshToken;
+
+    const name = `${user.firstName} ${user.lastName}`;
     await user.save();
 
-    await senWelcomeEmail(user.email, user.name);
+    await senWelcomeEmail(user.email, name);
 
     res
       .cookie("refreshToken", refreshToken, cookieOptions)
@@ -83,7 +93,7 @@ const VerfiyEmail = async (req, res) => {
         accessToken,
         user: {
           id: user._id,
-          fullName: user.name,
+          fullName: name,
           email: user.email,
         },
       });
@@ -132,6 +142,7 @@ const Login = async (req, res) => {
     const refreshToken = generateRefreshToken(user);
 
     user.refreshToken = refreshToken;
+    const name = `${user.firstName} ${user.lastName}`;
     await user.save();
 
     res
@@ -143,7 +154,7 @@ const Login = async (req, res) => {
         accessToken,
         user: {
           id: user._id,
-          fullName: user.name,
+          fullName: name,
           email: user.email,
         },
       });
@@ -187,11 +198,12 @@ const RefreshToken = async (req, res) => {
             message: "Invalid or expired refresh token",
           });
         }
-        
+
         const newAccessToken = generateAccessToken(user);
         const newRefreshToken = generateRefreshToken(user);
 
         user.refreshToken = newRefreshToken;
+        const name = `${user.firstName} ${user.lastName}`;
         await user.save();
 
         return res
@@ -202,10 +214,8 @@ const RefreshToken = async (req, res) => {
             accessToken: newAccessToken,
             user: {
               id: user._id,
-              fullName: user.name, // make sure your schema field is "name"
+              fullName: name,
               email: user.email,
-              role: user.role,
-              isSubscribed: user.role === "admin" ? true : false, // fix undefined var
             },
           });
       }

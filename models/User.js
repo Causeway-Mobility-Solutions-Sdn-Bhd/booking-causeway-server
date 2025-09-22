@@ -7,7 +7,11 @@ const userShcema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    name: {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
       type: String,
       required: true,
     },
