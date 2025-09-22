@@ -24,7 +24,6 @@ const senWelcomeEmail=async(email,name)=>{
             text: "Welcome Email", 
             html: Welcome_Email_Template.replace("{name}",name)
         })
-        console.log('Email send Successfully',response)
     } catch (error) {
         console.log('Email error',error)
     }

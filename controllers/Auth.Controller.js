@@ -66,7 +66,6 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     const { code } = req.body;
     console.log("Received verification code:", code);
 
-    // Find user by token
     const user = await Usermodel.findOne({ verficationToken: code });
 
     if (!user) {
@@ -76,7 +75,6 @@ const VerifyEmail = asyncHandler(async (req, res) => {
       });
     }
 
-    // Check if token expired
     if (
       !user.verficationTokenExpiresAt ||
       user.verficationTokenExpiresAt.getTime() < Date.now()
@@ -87,11 +85,9 @@ const VerifyEmail = asyncHandler(async (req, res) => {
       });
     }
 
-    // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Update user fields
     user.isVerified = true;
     user.verficationToken = "";
     user.verficationTokenExpiresAt = undefined;
@@ -100,7 +96,6 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
 
-    // Send welcome email (non-blocking)
     senWelcomeEmail(user.email, name).catch((err) =>
       console.error("Failed to send welcome email:", err.message)
     );
