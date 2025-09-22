@@ -8,7 +8,7 @@ const FileRoute = require("./routes/FileRoute");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const connectDB  = require("./db/config");
+const connectDB = require("./db/config");
 
 connectDB();
 const app = express();
@@ -22,20 +22,19 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(
   cors({
-    credentials: true,
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); 
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+      return callback(new Error("Not allowed by CORS"));
     },
+    credentials: true, 
   })
 );
 app.use((err, req, res, next) => {
   console.error("Unhandled error:", err);
 
-  // Ensure CORS headers are always sent
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");
 
@@ -43,7 +42,6 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
   });
 });
-
 
 // Routers
 app.get("/", (req, res) => {
