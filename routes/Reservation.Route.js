@@ -1,8 +1,8 @@
 const express = require('express')
 
 const { validateDatesAndListVehicleClasses , getAdditionalCharges ,  checkAdditionalCharges, getReservationAttempt  , getReservation , confirmReservation, processPayment} = require('../controllers/Reservation.Controller')
-const { apiKeyAuth } = require('../middleware/apiKeyAuth')
-const { reservationAttempt } = require('../middleware/reservationAttempt')
+const { apiKeyAuth } = require('../middleware/apiKeyAuth.middlware')
+const { reservationAttempt } = require('../middleware/reservationAttempt.middlware')
 
 const router = express.Router()
 

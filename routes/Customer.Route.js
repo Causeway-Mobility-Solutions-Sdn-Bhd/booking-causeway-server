@@ -1,8 +1,8 @@
 const express = require('express')
 
 const { getCustomerFormFields , createCustomer  , getSingleCustomerById } = require('../controllers/Customer.Controller')
-const { apiKeyAuth } = require('../middleware/apiKeyAuth')
-const { reservationAttempt } = require('../middleware/reservationAttempt')
+const { apiKeyAuth } = require('../middleware/apiKeyAuth.middlware')
+const { reservationAttempt } = require('../middleware/reservationAttempt.middlware')
 
 
 const router = express.Router()

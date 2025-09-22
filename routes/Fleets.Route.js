@@ -1,7 +1,7 @@
 const express = require('express')
 
 const { getAllVehicleTypes , getAllVehicalesClasses , getAllLocation , getAllBrands  ,getAllVehicles } = require('../controllers/Fleets.Controller')
-const { apiKeyAuth } = require('../middleware/apiKeyAuth')
+const { apiKeyAuth } = require('../middleware/apiKeyAuth.middlware')
 
 
 const router = express.Router()

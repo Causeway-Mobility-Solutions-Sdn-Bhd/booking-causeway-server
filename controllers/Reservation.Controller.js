@@ -3,6 +3,7 @@ const hqApi = require("../hq/hqApi");
 const NodeCache = require("node-cache");
 const ReservationAttempt = require("../models/ReservationAttempt");
 const { generateSessionId } = require("../lib/idGenerator");
+const cookieOptions = require("../lib/cookieOption");
 
 const cache = new NodeCache({ stdTTL: 86400 });
 
@@ -247,12 +248,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     }
 
     if (isCreate) {
-      res.cookie("ssid", savedReservation._id.toString(), {
-        httpOnly: true,
-        secure: true,
-        sameSite: "None",
-        maxAge: 24 * 60 * 60 * 1000,
-      });
+      res.cookie("ssid", savedReservation._id.toString(), cookieOptions);
     }
 
     res.status(200).json({
