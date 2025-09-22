@@ -171,7 +171,7 @@ const ResendVerification = asyncHandler(async (req, res) => {
   }
 });
 
-//@DESC Register
+//@DESC Login
 //@Route POST /auth/login
 //@Access Private
 const Login = asyncHandler(async (req, res) => {
@@ -232,7 +232,7 @@ const Login = asyncHandler(async (req, res) => {
   }
 });
 
-//@DESC Register
+//@DESC Refresh Token
 //@Route POST /auth/refresh/token
 //@Access Private
 const RefreshToken = asyncHandler(async (req, res) => {
