@@ -31,6 +31,17 @@ app.use(cors({
   },
   credentials: true
 }));
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err);
+
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+  });
+});
+
 
 // Routers
 app.get("/", (req, res) => {
