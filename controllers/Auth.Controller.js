@@ -8,6 +8,7 @@ const {
 const cookieOptions = require("../lib/cookieOption.js");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const { generateSessionId } = require("../lib/idGenerator.js");
 
 //@DESC Register
 //@Route POST /auth/register
@@ -15,32 +16,43 @@ const asyncHandler = require("express-async-handler");
 const Reigster = asyncHandler(async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
+    
     if (!email || !password || !firstName || !lastName) {
       return res
         .status(400)
         .json({ success: false, message: "All fields are required" });
     }
+
     const ExistsUser = await Usermodel.findOne({ email });
     if (ExistsUser) {
       return res
         .status(400)
         .json({ success: false, message: "User Already Exists Please Login" });
     }
+
     const hasePassowrd = await bcryptjs.hashSync(password, 10);
     const verficationToken = Math.floor(
       100000 + Math.random() * 900000
     ).toString();
+    const clientToken = generateSessionId();
+
     const user = new Usermodel({
       email,
       password: hasePassowrd,
       firstName,
       lastName,
       verficationToken,
+      clientToken,
       verficationTokenExpiresAt: Date.now() + 60 * 1000,
+      clientTokenExpiresAt: Date.now() + 60 * 1000 * 5,
     });
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
-    await sendVerificationEamil(user.email, verficationToken);
+
+    const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
+
+    await sendVerificationEamil(user.email, verficationToken , clientUrl);
+
     return res.status(200).json({
       success: true,
       message: "User Register Successfully",
@@ -48,6 +60,7 @@ const Reigster = asyncHandler(async (req, res) => {
         id: user._id,
         fullName: name,
         email: user.email,
+        clientToken : user?.clientToken
       },
     });
   } catch (error) {
@@ -289,10 +302,64 @@ const RefreshToken = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Verify Client Token
+//@Route GET /auth/verify-client/:clientToken
+//@Access Public
+const VerifyClientToken = asyncHandler(async (req, res) => {
+  try {
+    const { clientToken } = req.params;
+
+    if (!clientToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Client token is required",
+      });
+    }
+
+    const user = await Usermodel.findOne({
+      clientToken,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired client token",
+      });
+    }
+
+    if (
+      user.clientTokenExpiresAt.getTime() < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired client token",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Valid client token",
+      data: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+
 module.exports = {
   Reigster,
   VerifyEmail,
   Login,
   RefreshToken,
   ResendVerification,
+  VerifyClientToken
 };

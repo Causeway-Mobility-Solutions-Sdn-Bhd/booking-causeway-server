@@ -311,6 +311,22 @@ const Verification_Email_Template = `
                       <a href="mailto:support@causewayrental.com" style="color: #2dbdb6; text-decoration: none;">Contact us</a>
                   </p>
               </div>
+
+              <div class="verification-section">
+                <div class="verification-label">Your Verification Code</div>
+                <div class="verification-code">{verificationCode}</div>
+                
+                <p style="margin:20px 0;color:#5a6c7d;font-size:14px;">
+                    Or simply click the button below to verify:
+                </p>
+                <a href="{verificationLink}" 
+                    style="display:inline-block;background:#2dbdb6;color:#fff;
+                            padding:12px 24px;border-radius:6px;
+                            font-weight:bold;text-decoration:none;">
+                    clieck to Verify
+                </a>
+                </div>
+
               
               <div class="footer">
                   <div class="company-info">

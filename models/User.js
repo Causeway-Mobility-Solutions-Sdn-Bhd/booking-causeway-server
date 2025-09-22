@@ -33,6 +33,8 @@ const userShcema = new mongoose.Schema(
     },
     verficationToken: String,
     verficationTokenExpiresAt: Date,
+    clientToken: String,
+    clientTokenExpiresAt: Date,
     resetPasswordToken: String,
   },
   { timestamps: true }
