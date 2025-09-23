@@ -16,7 +16,7 @@ const { generateSessionId } = require("../lib/idGenerator.js");
 const Reigster = asyncHandler(async (req, res) => {
   try {
     const { email, password, firstName, lastName } = req.body;
-    
+
     if (!email || !password || !firstName || !lastName) {
       return res
         .status(400)
@@ -51,7 +51,7 @@ const Reigster = asyncHandler(async (req, res) => {
 
     const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
 
-    await sendVerificationEamil(user.email, verficationToken , clientUrl);
+    await sendVerificationEamil(user.email, verficationToken, clientUrl);
 
     return res.status(200).json({
       success: true,
@@ -60,7 +60,7 @@ const Reigster = asyncHandler(async (req, res) => {
         id: user._id,
         fullName: name,
         email: user.email,
-        clientToken : user?.clientToken
+        clientToken: user?.clientToken,
       },
     });
   } catch (error) {
@@ -116,21 +116,18 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "User verified successfully",
-      accessToken,
       user: {
         id: user._id,
         fullName: name,
         email: user.email,
+        accessToken,
       },
     });
   } catch (error) {
     console.error("VerifyEmail error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: error});
+    return res.status(500).json({ success: false, message: error });
   }
 });
-
 
 //@DESC Resend Verification Code
 //@Route POST /auth/resend-verification
@@ -225,11 +222,11 @@ const Login = asyncHandler(async (req, res) => {
       .json({
         success: true,
         message: "Login successful",
-        accessToken,
         user: {
           id: user._id,
           fullName: name,
           email: user.email,
+          accessToken,
         },
       });
   } catch (error) {
@@ -285,11 +282,11 @@ const RefreshToken = asyncHandler(async (req, res) => {
           .status(200)
           .json({
             success: true,
-            accessToken: newAccessToken,
             user: {
               id: user._id,
               fullName: name,
               email: user.email,
+              accessToken: newAccessToken,
             },
           });
       }
@@ -327,9 +324,7 @@ const VerifyClientToken = asyncHandler(async (req, res) => {
       });
     }
 
-    if (
-      user.clientTokenExpiresAt.getTime() < Date.now()
-    ) {
+    if (user.clientTokenExpiresAt.getTime() < Date.now()) {
       return res.status(400).json({
         success: false,
         message: "Invalid or expired client token",
@@ -354,12 +349,11 @@ const VerifyClientToken = asyncHandler(async (req, res) => {
   }
 });
 
-
 module.exports = {
   Reigster,
   VerifyEmail,
   Login,
   RefreshToken,
   ResendVerification,
-  VerifyClientToken
+  VerifyClientToken,
 };
