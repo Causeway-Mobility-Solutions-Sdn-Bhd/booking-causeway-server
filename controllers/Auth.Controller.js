@@ -110,7 +110,7 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     await user.save();
 
     senWelcomeEmail(user.email, name).catch((err) =>
-      console.error("Failed to send welcome email:", err.message)
+      console.log("Failed to send welcome email:", err.message)
     );
 
     return res.status(200).json({
@@ -124,7 +124,7 @@ const VerifyEmail = asyncHandler(async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("VerifyEmail error:", error);
+    console.log("VerifyEmail error:", error);
     return res.status(500).json({ success: false, message: error });
   }
 });
@@ -292,7 +292,7 @@ const RefreshToken = asyncHandler(async (req, res) => {
       }
     );
   } catch (error) {
-    console.error("RefreshToken error:", error);
+    console.log("RefreshToken error:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });

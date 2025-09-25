@@ -141,7 +141,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
         }
       }
     } catch (error) {
-      console.error("Error handling reservation attempt:", error.message);
+      console.log("Error handling reservation attempt:", error.message);
       return res
         .status(500)
         .json({ message: "Failed to process reservation attempt" });
@@ -256,7 +256,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       VehicleClasses: enrichedClasses,
     });
   } catch (error) {
-    console.error(
+    console.log(
       "Error validating dates and fetching vehicle classes:",
       error
     );
@@ -379,7 +379,7 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
       additional_charges: groupedAdditionalCharges,
     });
   } catch (error) {
-    console.error("Error fetching additional charges:", error);
+    console.log("Error fetching additional charges:", error);
 
     const statusCode = error?.response?.status || 500;
     const message =
@@ -506,7 +506,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       selected_additional_charges_arr: normalizedCharges,
     });
   } catch (error) {
-    console.error("Error fetch:", error);
+    console.log("Error fetch:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch",
     });
@@ -562,7 +562,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
 
     res.status(200).json(response?.data);
   } catch (error) {
-    console.error("Error confirming reservation:", error);
+    console.log("Error confirming reservation:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to confirm reservation",
     });
@@ -591,7 +591,7 @@ const processPayment = asyncHandler(async (req, res) => {
 
     res.status(200).json(response?.data);
   } catch (error) {
-    console.error("Error processing payment:", error);
+    console.log("Error processing payment:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to process payment",
     });
@@ -614,7 +614,7 @@ const getReservation = asyncHandler(async (req, res) => {
 
     res.status(response?.status || 200).json(response?.data);
   } catch (error) {
-    console.error("Error fetching reservation details:", error);
+    console.log("Error fetching reservation details:", error);
     res.status(error.response?.status || 500).json({
       message:
         error.response?.data?.message || "Failed to fetch reservation details",
@@ -637,7 +637,7 @@ const getReservationAttempt = asyncHandler(async (req, res) => {
 
     return res.status(200).json(reservation);
   } catch (error) {
-    console.error("Error fetching reservation attempt:", error.message);
+    console.log("Error fetching reservation attempt:", error.message);
     return res.status(500).json({ message: "Server error" });
   }
 });

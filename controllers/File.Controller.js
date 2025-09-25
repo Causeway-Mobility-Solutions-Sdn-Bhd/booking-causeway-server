@@ -36,7 +36,7 @@ const uploadFile = asyncHandler(async (req, res) => {
 
     res.status(200).json(response.data.data);
   } catch (error) {
-    console.error("Error uploading file:", error.message || error);
+    console.log("Error uploading file:", error.message || error);
 
     if (error.response) {
       return res.status(error.response.status).json({

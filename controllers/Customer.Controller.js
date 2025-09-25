@@ -14,7 +14,7 @@ const getCustomerFormFields = asyncHandler(async (req, res) => {
 
     res.status(200).json(fields);
   } catch (error) {
-    console.error("Error fetching customer form fields:", error);
+    console.log("Error fetching customer form fields:", error);
     res.status(error.response?.status || 500).json({
       message:
         error.response?.data?.message || "Failed to fetch customer form fields",

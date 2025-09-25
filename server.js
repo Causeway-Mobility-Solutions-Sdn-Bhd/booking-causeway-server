@@ -34,7 +34,7 @@ app.use(cors({
   credentials: true
 }));
 app.use((err, req, res, next) => {
-  console.error("Global error handler:", err);
+  console.log("Global error handler:", err);
 
   res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
   res.header("Access-Control-Allow-Credentials", "true");

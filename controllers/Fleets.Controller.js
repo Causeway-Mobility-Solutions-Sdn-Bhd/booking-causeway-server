@@ -25,7 +25,7 @@ const getAllVehicalesClasses = asyncHandler(async (req, res) => {
 
     res.status(200).json(filteredVehicleClasses);
   } catch (error) {
-    console.error("Error fetching vehicle class:", error);
+    console.log("Error fetching vehicle class:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch vehicle class",
     });
@@ -56,7 +56,7 @@ const getAllVehicleTypes = asyncHandler(async (req, res) => {
 
     res.status(200).json(activeVehicleTypes);
   } catch (error) {
-    console.error("Error fetching vehicle types:", error);
+    console.log("Error fetching vehicle types:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch vehicle types",
     });
@@ -82,7 +82,7 @@ const getAllLocation = asyncHandler(async (req, res) => {
 
     res.status(200).json(response.data.fleets_locations);
   } catch (error) {
-    console.error("Error fetching  location :", error);
+    console.log("Error fetching  location :", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch location",
     });
@@ -120,7 +120,7 @@ const getAllBrands = asyncHandler(async (req, res) => {
 
     res.status(200).json(uniqueBrands);
   } catch (error) {
-    console.error("Error fetching brands from locations:", error);
+    console.log("Error fetching brands from locations:", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch brands",
     });
@@ -195,7 +195,7 @@ const getAllVehicles = asyncHandler(async (req, res) => {
 
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Error fetching vehicles:", error.message);
+    console.log("Error fetching vehicles:", error.message);
     res
       .status(error.response?.status || 500)
       .json({ message: "Failed to fetch vehicles" });
