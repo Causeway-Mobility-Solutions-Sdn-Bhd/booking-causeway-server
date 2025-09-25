@@ -147,9 +147,8 @@ const getAllVehicles = asyncHandler(async (req, res) => {
       await Promise.all([
         hqApi.get("fleets/vehicles/", {
           params: { brand_id: 1 },
-          timeout: 5000,
         }),
-        hqApi.get("fleets/vehicle-classes", { timeout: 5000 }),
+        hqApi.get("fleets/vehicle-classes"),
         hqApi.post(
           "car-rental/reservations/dates",
           {
@@ -158,7 +157,6 @@ const getAllVehicles = asyncHandler(async (req, res) => {
             return_location: 1,
             brand_id: 1,
           },
-          { timeout: 5000 }
         ),
       ]);
 
