@@ -200,6 +200,32 @@ const getAllVehicles = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Get All Location
+//@Router GET /api/fleets/currencies
+//@access Private
+const getAllCurrencies = asyncHandler(async (req, res) => {
+  try {
+    const cacheKey = "currencies";
+    const cached = cache.get(cacheKey);
+
+    if (cached) {
+      console.log("Serving currencies from cache");
+      return res.status(200).json(cached);
+    }
+
+    const response = await hqApi.get("currencies");
+    cache.set(cacheKey, response.data); 
+    console.log("currencies cached");
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.log("Error fetching currencies :", error);
+    res.status(error.response?.status || 500).json({
+      message: error.response?.data?.message || "Failed to fetch currencies",
+    });
+  }
+});
+
 const getOptimizedDates = () => {
   const now = Date.now();
   const tomorrow = new Date(now + 24 * 60 * 60 * 1000);
@@ -340,4 +366,5 @@ module.exports = {
   getAllLocation,
   getAllBrands,
   getAllVehicles,
+  getAllCurrencies
 };

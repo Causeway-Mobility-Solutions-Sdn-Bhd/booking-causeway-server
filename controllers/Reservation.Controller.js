@@ -604,15 +604,17 @@ const processPayment = asyncHandler(async (req, res) => {
 const getReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
-    console.log(reservationAttemptId);
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
+    const id = reservation?.reservation_id
     console.log(reservation);
 
     const response = await hqApi.get(
-      `/car-rental/reservations/${reservation?.reservation_id}`
+      `/car-rental/reservations/${id}`
     );
 
-    res.status(response?.status || 200).json(response?.data);
+    const responseAgrrement = await hqApi.get(`/car-rental/reservations/${id}/rental-agreement`);
+
+    res.status(response?.status || 200).json({...response?.data, rental_agreement: responseAgrrement?.data });
   } catch (error) {
     console.log("Error fetching reservation details:", error);
     res.status(error.response?.status || 500).json({
