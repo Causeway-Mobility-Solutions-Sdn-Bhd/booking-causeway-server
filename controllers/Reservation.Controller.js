@@ -31,6 +31,8 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     connectivity,
   } = req.body;
 
+  console.log(req?.body)
+
   const reservationAttemptId = req.reservationAttemptId;
 
   // ✅ Step 1: Validate required input
@@ -61,6 +63,8 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
         brand_id,
       }
     );
+
+    console.log(reservationResponse)
 
     // ✅ Step 3: Get vehicles + classTypeArray from cache
     const cacheKey = "vehicles_with_classMap";
@@ -124,6 +128,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
 
     try {
       if (isCreate) {
+        console.log(reservation)
         savedReservation = await ReservationAttempt.create(reservation);
       } else {
         if (reservationAttemptId) {

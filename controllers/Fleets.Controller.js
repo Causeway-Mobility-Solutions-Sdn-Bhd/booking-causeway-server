@@ -233,9 +233,9 @@ const getOptimizedDates = () => {
 
   return {
     pick_up_date: formatDateFast(tomorrow),
-    pick_up_time: "10:30",
+    pick_up_time: "10:00",
     return_date: formatDateFast(dayAfter),
-    return_time: "10:30",
+    return_time: "10:00",
   };
 };
 
