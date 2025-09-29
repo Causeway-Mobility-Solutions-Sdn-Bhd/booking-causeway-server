@@ -62,7 +62,7 @@ const sendPartnerNotificationEmail = async (formData) => {
     // Send email to partner
     const response = await transporter.sendMail({
       from: '"Causeway Car Rental" <causewaycarrental@gmail.com>',
-      to: "saimfayyaz124@gmail.com",
+      to: "hello@causeway.my",
       subject: `New Partner Inquiry from ${formData.name}`,
       text: `New partner inquiry received from ${formData.name}`,
       html: htmlContent,
