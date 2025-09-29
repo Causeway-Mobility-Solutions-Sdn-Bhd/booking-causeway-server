@@ -910,5 +910,389 @@ const Welcome_Email_Template = `
   </body>
   </html>
 `;
-
-module.exports = { Welcome_Email_Template, Verification_Email_Template };
+const Partner_Notification_Template = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Partner Inquiry - Causeway Car Rental</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .email-wrapper {
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2dbdb6 0%, #1a9d96 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        
+        .alert-badge {
+            display: inline-block;
+            background: #ff748b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .content {
+            padding: 40px 30px;
+            color: #2c3e50;
+        }
+        
+        .notification-header {
+            font-size: 22px;
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .notification-time {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 4px solid #2dbdb6;
+        }
+        
+        .info-section {
+            margin-bottom: 25px;
+        }
+        
+        .info-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            color: #2dbdb6;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: #2dbdb6;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #64748b;
+            font-size: 14px;
+            min-width: 140px;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            font-size: 14px;
+            font-weight: 500;
+            flex: 1;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff5f7 0%, #ffe4e9 100%);
+            border: 2px solid #ff748b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .highlight-title {
+            font-size: 14px;
+            color: #ff748b;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .highlight-value {
+            font-size: 24px;
+            color: #2c3e50;
+            font-weight: 800;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2dbdb6 0%, #1a9d96 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(45, 189, 182, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #2dbdb6;
+            border: 2px solid #2dbdb6;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
+            margin: 30px 0;
+        }
+        
+        .note-box {
+            background: #fff9e6;
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #8b7300;
+        }
+        
+        .footer {
+            background: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .company-info {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .contact-info {
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        .contact-info a {
+            color: #2dbdb6;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 600px) {
+            .email-wrapper {
+                padding: 20px 10px;
+            }
+            
+            .container {
+                border-radius: 8px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .logo {
+                font-size: 24px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                margin-bottom: 4px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .footer {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-wrapper">
+        <div class="container">
+            <div class="header">
+                <div class="header-content">
+                    <div class="logo">🚗 Causeway Car Rental</div>
+                    <div class="subtitle">Partner Network</div>
+                    <div class="alert-badge">🔔 New Inquiry</div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="notification-header">New Partner Vehicle Inquiry</div>
+                <div class="notification-time">📅 Received: {submissionDate}</div>
+                
+                <div class="info-card">
+                    <div class="info-section">
+                        <div class="section-title">👤 Customer Information</div>
+                        <div class="info-row">
+                            <div class="info-label">Full Name:</div>
+                            <div class="info-value">{customerName}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Email:</div>
+                            <div class="info-value">{customerEmail}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Phone:</div>
+                            <div class="info-value">{customerPhone}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="info-section">
+                        <div class="section-title">🚘 Vehicle Details</div>
+                        <div class="info-row">
+                            <div class="info-label">Make:</div>
+                            <div class="info-value">{vehicleMake}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Model:</div>
+                            <div class="info-value">{vehicleModel}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Year:</div>
+                            <div class="info-value">{vehicleYear}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Mileage:</div>
+                            <div class="info-value">{vehicleMileage} km</div>
+                        </div>
+                    </div>
+                </div>
+                
+                
+               
+                
+                <div class="divider"></div>
+                
+                <p style="color: #64748b; font-size: 13px; text-align: center;">
+                    This is an automated notification from your Causeway Car Rental partner portal.
+                </p>
+            </div>
+            
+            <div class="footer">
+                <div class="company-info">
+                    Causeway Car Rental - Partner Network
+                </div>
+                
+                <div class="contact-info">
+                    📧 hello@causeway.my | 📱 +1 (555) 123-4567<br>
+                    🏢 123 Rental Street, City, State 12345
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 11px; color: #94a3b8;">
+                    &copy; ${new Date().getFullYear()} Causeway Car Rental. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+`;
+module.exports = {
+  Welcome_Email_Template,
+  Verification_Email_Template,
+  Partner_Notification_Template,
+};

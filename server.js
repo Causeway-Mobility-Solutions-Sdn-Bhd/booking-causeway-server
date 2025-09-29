@@ -5,7 +5,7 @@ const reservationRoute = require("./routes/Reservation.Route");
 const CustomerRoute = require("./routes/Customer.Route");
 const FileRoute = require("./routes/File.Route");
 const AuthRoute = require("./routes/Auth.Route");
-
+const EmailRoute = require("./routes/Email.Route");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -18,21 +18,23 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://staging-causewaymy.vercel.app",
   "https://causeway.my",
-  "https://www.causeway.my"
+  "https://www.causeway.my",
 ];
 app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
 app.use((err, req, res, next) => {
   console.log("Global error handler:", err);
 
@@ -43,7 +45,6 @@ app.use((err, req, res, next) => {
     message: err.message || "Internal Server Error",
   });
 });
-
 
 // Routers
 app.get("/", (req, res) => {
@@ -57,6 +58,7 @@ app.use("/api/car-rental", reservationRoute);
 app.use("/api/customers", CustomerRoute);
 app.use("/api/file", FileRoute);
 app.use("/api/auth", AuthRoute);
+app.use("/api/email", EmailRoute);
 
 const port = process.env.PORT || 5000;
 
