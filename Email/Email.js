@@ -2,9 +2,14 @@ const { transporter } = require("./Email.config.js");
 const {
   Verification_Email_Template,
   Welcome_Email_Template,
+  Partner_Notification_Template,
 } = require("./EmailTemplate.js");
 
-const sendVerificationEamil = async (email, verificationCode, verificationLink) => {
+const sendVerificationEamil = async (
+  email,
+  verificationCode,
+  verificationLink
+) => {
   try {
     const htmlContent = Verification_Email_Template.replace(
       "{verificationCode}",
@@ -36,5 +41,43 @@ const senWelcomeEmail = async (email, name) => {
     console.log("Email error", error);
   }
 };
+const sendPartnerNotificationEmail = async (formData) => {
+  try {
+    // Prepare HTML content with form data
+    const htmlContent = Partner_Notification_Template.replace(
+      "{customerName}",
+      formData.name
+    )
+      .replace("{customerEmail}", formData.email)
+      .replace(
+        "{customerPhone}",
+        `${formData.phoneCountryCode} ${formData.phone}`
+      )
+      .replace("{vehicleMake}", formData.vehicleMake || "N/A")
+      .replace("{vehicleModel}", formData.vehicleModel || "N/A")
+      .replace("{vehicleYear}", formData.vehicleYear || "N/A")
+      .replace("{vehicleMileage}", formData.vehicleMilage || "N/A")
+      .replace("{submissionDate}", new Date().toLocaleString());
 
-module.exports = { senWelcomeEmail, sendVerificationEamil };
+    // Send email to partner
+    const response = await transporter.sendMail({
+      from: '"Causeway Car Rental" <causewaycarrental@gmail.com>',
+      to: "hello@causeway.my",
+      subject: `New Partner Inquiry from ${formData.name}`,
+      text: `New partner inquiry received from ${formData.name}`,
+      html: htmlContent,
+    });
+
+    console.log("Partner email sent successfully:", response.messageId);
+    return response;
+  } catch (error) {
+    console.error("Partner email error:", error);
+    throw error;
+  }
+};
+
+module.exports = {
+  senWelcomeEmail,
+  sendVerificationEamil,
+  sendPartnerNotificationEmail,
+};
