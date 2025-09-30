@@ -101,7 +101,6 @@ const getSingleCustomerById = asyncHandler(async (req, res) => {
           public_link: file.public_link,
         }));
 
-      // ✅ update fields
       contact.f252 = drivingLicence;
       contact.f274 = ids;
     }
