@@ -50,7 +50,39 @@ const uploadFile = asyncHandler(async (req, res) => {
   }
 });
 
+
+// @DESC Delete a file from the external API
+// @Route DELETE /api/file/:id
+// @Access Private
+const deleteFile = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "File ID is required" });
+    }
+
+    const response = await hqApi.delete(`files/${id}`);
+    console.log(response)
+
+    res.status(200).json({ message: "File deleted successfully" });
+  } catch (error) {
+    console.log("Error deleting file:", error.message || error);
+
+    if (error.response) {
+      return res.status(error.response.status).json({
+        message: error.response.data?.message || "Failed to delete file",
+      });
+    }
+
+    res
+      .status(500)
+      .json({ message: "An error occurred while deleting the file" });
+  }
+});
+
 module.exports = {
-  uploadFile: [upload.single('file'), uploadFile]
+  uploadFile: [upload.single('file'), uploadFile],
+  deleteFile
 };
 

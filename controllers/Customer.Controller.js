@@ -115,8 +115,48 @@ const getSingleCustomerById = asyncHandler(async (req, res) => {
   }
 });
 
+// @DESC Update Customer
+// @Route PUT /api/customers/update-customer/:id
+// @Access Private
+const updateCustomer = asyncHandler(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Customer ID is required" });
+    }
+
+    const updateData = req.body;
+
+    if (!updateData || Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "No update data provided" });
+    }
+
+    const response = await hqApi.put(
+      `contacts/categories/3/contacts/${id}`,
+      updateData,
+    );
+
+    res.status(200).json({
+      message: "Customer updated successfully",
+      customer: response?.data?.contact,
+    });
+  } catch (error) {
+    console.log("Error updating customer:", error.message || error);
+
+    if (error.response) {
+      return res.status(error.response.status).json({
+        message: error.response.data?.message || "Failed to update customer",
+      });
+    }
+
+    res.status(500).json({ message: "An error occurred while updating customer" });
+  }
+});
+
 module.exports = {
   getCustomerFormFields,
   createCustomer,
   getSingleCustomerById,
+  updateCustomer
 };
