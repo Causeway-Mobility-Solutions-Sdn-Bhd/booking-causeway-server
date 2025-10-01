@@ -566,7 +566,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
       reservation.reservation_id = id;
       reservation.step = 6;
       await reservation.save();
-      const response2 = await hqApi.post(
+      await hqApi.post(
         `/car-rental/reservations/${id}/pending`
       );
     }
