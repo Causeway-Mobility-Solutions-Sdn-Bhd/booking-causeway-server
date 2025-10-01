@@ -524,7 +524,9 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
 const confirmReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
+    const { couponCode } = req.body;
     console.log(reservationAttemptId);
+
 
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
@@ -540,12 +542,17 @@ const confirmReservation = asyncHandler(async (req, res) => {
       additional_charges: reservation?.selected_additional_charges,
       customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
+      coupon_code:couponCode
     };
+    console.log(formattedReservation)
+
+    console.log(couponCode)
 
     let response;
     if (reservation.reservation_id) {
-      response = await hqApi.get(
-        `/car-rental/reservations/${reservation?.reservation_id}`
+      response = await hqApi.post(
+        `/car-rental/reservations/${reservation?.reservation_id}/update`,
+         formattedReservation
       );
     } else {
       response = await hqApi.post(
