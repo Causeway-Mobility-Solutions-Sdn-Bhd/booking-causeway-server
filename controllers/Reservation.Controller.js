@@ -538,7 +538,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
       pick_up_time: reservation?.pick_up_time,
       return_time: reservation?.return_time,
       brand_id: reservation?.brand_id,
-      vehicle_class_id: reservation?.vehicle_class_id,
+      vehicle_class_id: Number(reservation?.vehicle_class_id),
       additional_charges: reservation?.selected_additional_charges,
       customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
