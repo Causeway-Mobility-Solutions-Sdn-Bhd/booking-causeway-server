@@ -31,7 +31,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     connectivity,
   } = req.body;
 
-  console.log(req?.body)
+  console.log(req?.body);
 
   const reservationAttemptId = req.reservationAttemptId;
 
@@ -64,7 +64,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       }
     );
 
-    console.log(reservationResponse)
+    console.log(reservationResponse);
 
     // ✅ Step 3: Get vehicles + classTypeArray from cache
     const cacheKey = "vehicles_with_classMap";
@@ -128,7 +128,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
 
     try {
       if (isCreate) {
-        console.log(reservation)
+        console.log(reservation);
         savedReservation = await ReservationAttempt.create(reservation);
       } else {
         if (reservationAttemptId) {
@@ -261,10 +261,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       VehicleClasses: enrichedClasses,
     });
   } catch (error) {
-    console.log(
-      "Error validating dates and fetching vehicle classes:",
-      error
-    );
+    console.log("Error validating dates and fetching vehicle classes:", error);
 
     const statusCode = error?.response?.status || 500;
     const message =
@@ -527,39 +524,48 @@ const confirmReservation = asyncHandler(async (req, res) => {
     const { couponCode } = req.body;
     console.log(reservationAttemptId);
 
-
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
     const formattedReservation = {
       pick_up_date: reservation?.pick_up_date,
       return_date: reservation?.return_date,
-      pick_up_location: Number(reservation?.pick_up_location.id),
-      return_location: Number(reservation?.return_location.id),
+      pick_up_location: reservation?.pick_up_location.id,
+      return_location: reservation?.return_location.id,
       pick_up_time: reservation?.pick_up_time,
       return_time: reservation?.return_time,
-      brand_id: Number(reservation?.brand_id),
+      brand_id: reservation?.brand_id,
       vehicle_class_id: Number(reservation?.vehicle_class_id),
       additional_charges: reservation?.selected_additional_charges,
       customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
-      coupon_code:couponCode
+      ...(couponCode && { coupon_code: couponCode }), // ✅ only add if not empty
     };
-    console.log(formattedReservation)
 
-    console.log(couponCode)
+    console.log(formattedReservation);
+
+    console.log({
+      ...(couponCode && { coupon_code: couponCode }),
+      ...(couponCode ? { add_discount: true } : { remove_discount: true }),
+      ...(!couponCode && { remove_all_discounts: true }),
+    });
 
     let response;
     if (reservation.reservation_id) {
       response = await hqApi.post(
         `/car-rental/reservations/${reservation?.reservation_id}/update`,
-         formattedReservation
+        {
+          ...(couponCode && { coupon_code: couponCode }),
+          ...(couponCode ? { add_discount: true } : { remove_discount: true }),
+          ...(!couponCode && { remove_all_discounts: true }),
+        }
       );
-      console.log("updat")
+      console.log("updat");
     } else {
       response = await hqApi.post(
         "car-rental/reservations/confirm",
         formattedReservation
       );
+      console.log("crate");
     }
 
     if (response?.status == 200) {
@@ -567,11 +573,8 @@ const confirmReservation = asyncHandler(async (req, res) => {
       reservation.reservation_id = id;
       reservation.step = 6;
       await reservation.save();
-      const res = await hqApi.post(
-        `/car-rental/reservations/${id}/pending`
-      );
+      const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }
-
 
     res.status(200).json(response?.data);
   } catch (error) {
@@ -618,16 +621,18 @@ const getReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
-    const id = reservation?.reservation_id
+    const id = reservation?.reservation_id;
     console.log(reservation);
 
-    const response = await hqApi.get(
-      `/car-rental/reservations/${id}`
+    const response = await hqApi.get(`/car-rental/reservations/${id}`);
+
+    const responseAgrrement = await hqApi.get(
+      `/car-rental/reservations/${id}/rental-agreement`
     );
 
-    const responseAgrrement = await hqApi.get(`/car-rental/reservations/${id}/rental-agreement`);
-
-    res.status(response?.status || 200).json({...response?.data, rental_agreement: responseAgrrement?.data });
+    res
+      .status(response?.status || 200)
+      .json({ ...response?.data, rental_agreement: responseAgrrement?.data });
   } catch (error) {
     console.log("Error fetching reservation details:", error);
     res.status(error.response?.status || 500).json({
