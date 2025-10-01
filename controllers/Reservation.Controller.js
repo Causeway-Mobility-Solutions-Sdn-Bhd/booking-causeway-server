@@ -533,11 +533,11 @@ const confirmReservation = asyncHandler(async (req, res) => {
     const formattedReservation = {
       pick_up_date: reservation?.pick_up_date,
       return_date: reservation?.return_date,
-      pick_up_location: reservation?.pick_up_location.id,
-      return_location: reservation?.return_location.id,
+      pick_up_location: Number(reservation?.pick_up_location.id),
+      return_location: Number(reservation?.return_location.id),
       pick_up_time: reservation?.pick_up_time,
       return_time: reservation?.return_time,
-      brand_id: reservation?.brand_id,
+      brand_id: Number(reservation?.brand_id),
       vehicle_class_id: Number(reservation?.vehicle_class_id),
       additional_charges: reservation?.selected_additional_charges,
       customer_id: reservation?.customer_id,
@@ -554,6 +554,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
         `/car-rental/reservations/${reservation?.reservation_id}/update`,
          formattedReservation
       );
+      console.log("updat")
     } else {
       response = await hqApi.post(
         "car-rental/reservations/confirm",
@@ -566,7 +567,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
       reservation.reservation_id = id;
       reservation.step = 6;
       await reservation.save();
-      await hqApi.post(
+      const res = await hqApi.post(
         `/car-rental/reservations/${id}/pending`
       );
     }
