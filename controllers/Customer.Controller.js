@@ -55,7 +55,9 @@ const createCustomer = asyncHandler(async (req, res) => {
       await savedReservation.save();
     }
 
-    res.status(200).json({customer : response.data , reservation : savedReservation});
+    res
+      .status(200)
+      .json({ customer: response.data, reservation: savedReservation });
   } catch (error) {
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to create customer",
@@ -87,9 +89,12 @@ const getSingleCustomerById = asyncHandler(async (req, res) => {
 
       const files = responseFiles.data.data || [];
 
+      console.log(files);
+
       drivingLicence = files
         .filter((ff) => ff?.field_id === 252)
         .map((file) => ({
+          id: file.id,
           label: file.label,
           public_link: file.public_link,
         }));
@@ -97,6 +102,7 @@ const getSingleCustomerById = asyncHandler(async (req, res) => {
       ids = files
         .filter((ff) => ff?.field_id === 274)
         .map((file) => ({
+          id: file.id,
           label: file.label,
           public_link: file.public_link,
         }));
@@ -133,7 +139,7 @@ const updateCustomer = asyncHandler(async (req, res) => {
 
     const response = await hqApi.put(
       `contacts/categories/3/contacts/${id}`,
-      updateData,
+      updateData
     );
 
     res.status(200).json({
@@ -149,7 +155,9 @@ const updateCustomer = asyncHandler(async (req, res) => {
       });
     }
 
-    res.status(500).json({ message: "An error occurred while updating customer" });
+    res
+      .status(500)
+      .json({ message: "An error occurred while updating customer" });
   }
 });
 
@@ -157,5 +165,5 @@ module.exports = {
   getCustomerFormFields,
   createCustomer,
   getSingleCustomerById,
-  updateCustomer
+  updateCustomer,
 };
