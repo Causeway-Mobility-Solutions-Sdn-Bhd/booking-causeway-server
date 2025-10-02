@@ -538,16 +538,8 @@ const confirmReservation = asyncHandler(async (req, res) => {
       additional_charges: reservation?.selected_additional_charges,
       customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
-      ...(couponCode && { coupon_code: couponCode }), // ✅ only add if not empty
     };
 
-    console.log(formattedReservation);
-
-    console.log({
-      ...(couponCode && { coupon_code: couponCode }),
-      ...(couponCode ? { add_discount: true } : { remove_discount: true }),
-      ...(!couponCode && { remove_all_discounts: true }),
-    });
 
     let response;
     if (reservation.reservation_id) {
