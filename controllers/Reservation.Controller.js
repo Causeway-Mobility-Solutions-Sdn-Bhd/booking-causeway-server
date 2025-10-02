@@ -561,9 +561,11 @@ const confirmReservation = asyncHandler(async (req, res) => {
     }
 
     if (response?.status == 200) {
+      console.log("update");
       const id = response?.data?.data?.reservation?.id;
       reservation.reservation_id = id;
-      reservation.step = 6;
+      reservation.isConformed = true;
+      console.log(reservation)
       await reservation.save();
       const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }

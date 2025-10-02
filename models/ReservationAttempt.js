@@ -54,6 +54,10 @@ const ReservationAttemptSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
+    isConformed : {
+      type:Boolean,
+      require:false
+    }
   },
   {
     timestamps: true,
