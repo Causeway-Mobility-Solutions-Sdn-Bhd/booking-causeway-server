@@ -387,6 +387,31 @@ const RefreshToken = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Get current logged in user
+//@Route GET /auth/current
+//@Access Private
+const GetCurrentUser = asyncHandler(async (req, res) => {
+  try {
+    const user = req.user; 
+    console.log(user)
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        fullName: `${user.firstName} ${user.lastName}`,
+        email: user.email,
+        HqId: user.HqId,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    console.log("GetCurrentUser error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+
 module.exports = {
   Reigster,
   VerifyEmail,
@@ -394,4 +419,5 @@ module.exports = {
   RefreshToken,
   ResendVerification,
   VerifyClientToken,
+  GetCurrentUser
 };
