@@ -336,7 +336,6 @@ const RefreshToken = asyncHandler(async (req, res) => {
         .json({ success: false, message: "No refresh token provided" });
     }
 
-    // Find user by refresh token
     const user = await Usermodel.findOne({ refreshToken });
     if (!user) {
       return res
@@ -344,7 +343,6 @@ const RefreshToken = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Invalid refresh token" });
     }
 
-    // Verify refresh token
     jwt.verify(
       refreshToken,
       process.env.JWT_REFRESH_SECRET,
