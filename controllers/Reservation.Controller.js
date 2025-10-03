@@ -524,7 +524,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
     const { couponCode , isRemove  } = req.body;
     console.log(isRemove , "remove")
     console.log(reservationAttemptId);
-
+    
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
     const formattedReservation = {
