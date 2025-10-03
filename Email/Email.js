@@ -23,6 +23,7 @@ const sendVerificationEamil = async (
       text: "Verify your Email",
       html: htmlContent,
     });
+    console.log(response)
   } catch (error) {
     console.log("Email error", error);
   }

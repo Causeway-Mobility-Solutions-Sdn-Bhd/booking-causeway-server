@@ -52,7 +52,7 @@ const Reigster = asyncHandler(async (req, res) => {
 
     const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
 
-    await sendVerificationEamil(user.email, verficationToken, clientUrl);
+    await sendVerificationEamil(user.email, verficationToken, clientUrl)
 
     return res.status(200).json({
       success: true,
