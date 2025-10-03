@@ -329,6 +329,7 @@ const Login = asyncHandler(async (req, res) => {
 const RefreshToken = asyncHandler(async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
+    
 
     if (!refreshToken) {
       return res
@@ -337,6 +338,8 @@ const RefreshToken = asyncHandler(async (req, res) => {
     }
 
     const user = await Usermodel.findOne({ refreshToken });
+    console.log(user)
+    
     if (!user) {
       return res
         .status(403)
