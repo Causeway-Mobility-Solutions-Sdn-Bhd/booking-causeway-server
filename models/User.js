@@ -31,6 +31,10 @@ const userShcema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    HqId : {
+      type : Number,
+      required:false,
+    },
     verficationToken: String,
     verficationTokenExpiresAt: Date,
     clientToken: String,

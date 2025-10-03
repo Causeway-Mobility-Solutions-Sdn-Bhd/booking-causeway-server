@@ -9,6 +9,7 @@ const cookieOptions = require("../lib/cookieOption.js");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const { generateSessionId } = require("../lib/idGenerator.js");
+const hqApi = require("../hq/hqApi");
 
 //@DESC Register
 //@Route POST /auth/register
@@ -43,8 +44,8 @@ const Reigster = asyncHandler(async (req, res) => {
       lastName,
       verficationToken,
       clientToken,
-      verficationTokenExpiresAt: Date.now() + 60 * 1000,
-      clientTokenExpiresAt: Date.now() + 60 * 1000 * 5,
+      verficationTokenExpiresAt: Date.now() + 90 * 1000,
+      clientTokenExpiresAt: Date.now() + 10 * 60 * 1000,
     });
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
@@ -101,10 +102,30 @@ const VerifyEmail = asyncHandler(async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    const userData = {
+      field_2: user?.firstName,
+      field_3: user?.lastName,
+      field_9: user?.email,
+    };
+
+    const response = await hqApi.post(
+      `contacts/categories/3/contacts`,
+      new URLSearchParams(userData),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const HQUser = response?.data?.contact;
+    console.log(response?.data);
+
     user.isVerified = true;
     user.verficationToken = "";
     user.verficationTokenExpiresAt = undefined;
     user.refreshToken = refreshToken;
+    user.HqId = HQUser?.id;
 
     const name = `${user.firstName} ${user.lastName}`;
     await user.save();
@@ -113,16 +134,20 @@ const VerifyEmail = asyncHandler(async (req, res) => {
       console.log("Failed to send welcome email:", err.message)
     );
 
-    return res.status(200).json({
-      success: true,
-      message: "User verified successfully",
-      user: {
-        id: user._id,
-        fullName: name,
-        email: user.email,
-        accessToken,
-      },
-    });
+    res
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .status(200)
+      .json({
+        success: true,
+        message: "User verified successfully",
+        user: {
+          id: user._id,
+          fullName: name,
+          email: user.email,
+          HqId: user?.HqId,
+          accessToken,
+        },
+      });
   } catch (error) {
     console.log("VerifyEmail error:", error);
     return res.status(500).json({ success: false, message: error });
@@ -157,9 +182,8 @@ const ResendVerification = asyncHandler(async (req, res) => {
     ).toString();
 
     user.verficationToken = verficationToken;
-    user.verficationTokenExpiresAt = Date.now() + 60 * 1000; // 1 min
-
-    await user.save();
+    (user.verficationTokenExpiresAt = Date.now() + 90 * 1000),
+      await user.save();
 
     const name = `${user.firstName} ${user.lastName}`;
     await sendVerificationEamil(user.email, verficationToken);
@@ -167,12 +191,73 @@ const ResendVerification = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "New verification code sent to your email",
+      data: {
+        email: user.email,
+        fullName: name,
+        verficationTokenExpiresAt: user?.verficationTokenExpiresAt,
+        clientTokenExpiresAt: user?.clientTokenExpiresAt,
+        isVerified: user?.isVerified,
+      },
     });
   } catch (error) {
     console.log(error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
+  }
+});
+
+//@DESC Verify Client Token
+//@Route GET /auth/verify-client/:clientToken
+//@Access Public
+const VerifyClientToken = asyncHandler(async (req, res) => {
+  try {
+    const { clientToken } = req.params;
+
+    if (!clientToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Client token is required",
+      });
+    }
+
+    const user = await Usermodel.findOne({
+      clientToken,
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired client token",
+      });
+    }
+
+    if (user.clientTokenExpiresAt.getTime() < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired client token",
+      });
+    }
+
+    const name = `${user.firstName} ${user.lastName}`;
+
+    return res.status(200).json({
+      success: true,
+      message: "Valid client token",
+      data: {
+        email: user.email,
+        fullName: name,
+        verficationTokenExpiresAt: user?.verficationTokenExpiresAt,
+        clientTokenExpiresAt: user?.clientTokenExpiresAt,
+        isVerified: user?.isVerified,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 });
 
@@ -226,6 +311,7 @@ const Login = asyncHandler(async (req, res) => {
           id: user._id,
           fullName: name,
           email: user.email,
+          HqId: user?.HqId,
           accessToken,
         },
       });
@@ -286,6 +372,7 @@ const RefreshToken = asyncHandler(async (req, res) => {
               id: user._id,
               fullName: name,
               email: user.email,
+              HqId: user?.HqId,
               accessToken: newAccessToken,
             },
           });
@@ -296,56 +383,6 @@ const RefreshToken = asyncHandler(async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
-  }
-});
-
-//@DESC Verify Client Token
-//@Route GET /auth/verify-client/:clientToken
-//@Access Public
-const VerifyClientToken = asyncHandler(async (req, res) => {
-  try {
-    const { clientToken } = req.params;
-
-    if (!clientToken) {
-      return res.status(400).json({
-        success: false,
-        message: "Client token is required",
-      });
-    }
-
-    const user = await Usermodel.findOne({
-      clientToken,
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired client token",
-      });
-    }
-
-    if (user.clientTokenExpiresAt.getTime() < Date.now()) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid or expired client token",
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Valid client token",
-      data: {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
   }
 });
 
