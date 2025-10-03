@@ -521,7 +521,8 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
 const confirmReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
-    const { couponCode } = req.body;
+    const { couponCode , isRemove  } = req.body;
+    console.log(isRemove , "remove")
     console.log(reservationAttemptId);
 
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
@@ -540,15 +541,20 @@ const confirmReservation = asyncHandler(async (req, res) => {
       skip_confirmation_email: true,
     };
 
+    console.log({
+          coupon_code: couponCode,
+          // ...(couponCode && { add_discount: 1 }),
+          ...(isRemove ? {remove_discount : 1} : {add_discount : 1} )
+        })
 
     let response;
     if (reservation.reservation_id) {
       response = await hqApi.post(
         `/car-rental/reservations/${reservation?.reservation_id}/update`,
         {
-          ...(couponCode && { coupon_code: couponCode }),
-          ...(couponCode ? { add_discount: true } : { remove_discount: true }),
-          ...(!couponCode && { remove_all_discounts: true }),
+          coupon_code: couponCode,
+          // ...(couponCode && { add_discount: 1 }),
+          ...(isRemove ? {remove_discount : 1} : {add_discount : 1} )
         }
       );
       console.log("updat");
