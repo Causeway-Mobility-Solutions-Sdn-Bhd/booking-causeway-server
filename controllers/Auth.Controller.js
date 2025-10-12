@@ -52,7 +52,7 @@ const Reigster = asyncHandler(async (req, res) => {
 
     const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
 
-    await sendVerificationEamil(user.email, verficationToken, clientUrl)
+    await sendVerificationEamil(user.email, verficationToken, clientUrl);
 
     return res.status(200).json({
       success: true,
@@ -69,6 +69,88 @@ const Reigster = asyncHandler(async (req, res) => {
     return res
       .status(400)
       .json({ success: false, message: "internal server error" });
+  }
+});
+
+//@DESC Login
+//@Route POST /auth/login
+//@Access Private
+const Login = asyncHandler(async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and password are required" });
+    }
+
+    const user = await Usermodel.findOne({ email });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    const isPasswordValid = await bcryptjs.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      const verficationToken = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString(); // 6-digit OTP
+
+      const clientToken = generateSessionId();
+
+      user.verficationToken = verficationToken;
+      user.clientToken = clientToken;
+      user.verficationTokenExpiresAt = Date.now() + 90 * 1000;
+      user.clientTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+
+      await user.save();
+
+      const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
+      await sendVerificationEamil(user.email, verficationToken, clientUrl);
+
+      return res.status(401).json({
+        success: false,
+        message: "Please verify your email first. Verification link re-sent.",
+
+        clientToken,
+      });
+    }
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    user.refreshToken = refreshToken;
+
+    await user.save();
+
+    const name = `${user.firstName} ${user.lastName}`;
+
+    res
+      .cookie("refreshToken", refreshToken, cookieOptions)
+      .status(200)
+      .json({
+        success: true,
+        message: "Login successful",
+        user: {
+          id: user._id,
+          fullName: name,
+          email: user.email,
+          HqId: user?.HqId,
+          accessToken,
+        },
+      });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -261,75 +343,12 @@ const VerifyClientToken = asyncHandler(async (req, res) => {
   }
 });
 
-//@DESC Login
-//@Route POST /auth/login
-//@Access Private
-const Login = asyncHandler(async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and password are required" });
-    }
-
-    const user = await Usermodel.findOne({ email });
-    if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    const isPasswordValid = await bcryptjs.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    if (!user.isVerified) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Please verify your email first" });
-    }
-
-    const accessToken = generateAccessToken(user);
-    const refreshToken = generateRefreshToken(user);
-
-    user.refreshToken = refreshToken;
-    const name = `${user.firstName} ${user.lastName}`;
-    await user.save();
-
-    res
-      .cookie("refreshToken", refreshToken, cookieOptions)
-      .status(200)
-      .json({
-        success: true,
-        message: "Login successful",
-        user: {
-          id: user._id,
-          fullName: name,
-          email: user.email,
-          HqId: user?.HqId,
-          accessToken,
-        },
-      });
-  } catch (error) {
-    console.log(error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
-  }
-});
-
 //@DESC Refresh Token
 //@Route POST /auth/refresh/token
 //@Access Private
 const RefreshToken = asyncHandler(async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
-    
 
     if (!refreshToken) {
       return res
@@ -338,8 +357,8 @@ const RefreshToken = asyncHandler(async (req, res) => {
     }
 
     const user = await Usermodel.findOne({ refreshToken });
-    console.log(user)
-    
+    console.log(user);
+
     if (!user) {
       return res
         .status(403)
@@ -392,8 +411,8 @@ const RefreshToken = asyncHandler(async (req, res) => {
 //@Access Private
 const GetCurrentUser = asyncHandler(async (req, res) => {
   try {
-    const user = req.user; 
-    console.log(user)
+    const user = req.user;
+    console.log(user);
 
     return res.status(200).json({
       success: true,
@@ -407,10 +426,11 @@ const GetCurrentUser = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.log("GetCurrentUser error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 });
-
 
 module.exports = {
   Reigster,
@@ -419,5 +439,5 @@ module.exports = {
   RefreshToken,
   ResendVerification,
   VerifyClientToken,
-  GetCurrentUser
+  GetCurrentUser,
 };
