@@ -13,10 +13,10 @@ const Verification_Email_Template = `
           }
           
           body {
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
               margin: 0;
               padding: 0;
-              background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+              background: #f5f7fa;
               min-height: 100vh;
           }
           
@@ -28,10 +28,9 @@ const Verification_Email_Template = `
               max-width: 600px;
               margin: 0 auto;
               background: #ffffff;
-              border-radius: 16px;
-              box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
               overflow: hidden;
-              position: relative;
           }
           
           .header {
@@ -39,145 +38,159 @@ const Verification_Email_Template = `
               color: white;
               padding: 40px 30px;
               text-align: center;
-              position: relative;
-              overflow: hidden;
-          }
-          
-          .header::before {
-              content: '';
-              position: absolute;
-              top: 0;
-              left: 0;
-              right: 0;
-              bottom: 0;
-              background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-              opacity: 0.3;
-          }
-          
-          .header-content {
-              position: relative;
-              z-index: 2;
           }
           
           .logo {
               font-size: 28px;
               font-weight: 700;
               margin-bottom: 8px;
-              text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
           }
           
           .subtitle {
-              font-size: 16px;
-              opacity: 0.9;
+              font-size: 15px;
+              opacity: 0.95;
               font-weight: 400;
           }
           
           .content {
               padding: 40px 30px;
               color: #2c3e50;
-              line-height: 1.7;
           }
           
           .welcome-text {
-              font-size: 18px;
-              margin-bottom: 8px;
-              color: #2c3e50;
-              font-weight: 600;
+              font-size: 24px;
+              margin-bottom: 12px;
+              color: #1a202c;
+              font-weight: 700;
           }
           
           .description {
               font-size: 15px;
-              color: #5a6c7d;
+              color: #64748b;
               margin-bottom: 30px;
+              line-height: 1.6;
           }
           
           .verification-section {
               background: linear-gradient(135deg, #fff5f7 0%, #f0fdfc 100%);
               border-radius: 12px;
-              padding: 25px;
-              margin: 25px 0;
+              padding: 30px;
+              margin: 30px 0;
               text-align: center;
               border: 2px solid #ffe4e9;
-              position: relative;
-              overflow: hidden;
-          }
-          
-          .verification-section::before {
-              content: '';
-              position: absolute;
-              top: -50%;
-              left: -50%;
-              width: 200%;
-              height: 200%;
-              background: radial-gradient(circle, rgba(255, 116, 139, 0.05) 0%, transparent 70%);
-              animation: pulse 3s ease-in-out infinite;
-          }
-          
-          @keyframes pulse {
-              0%, 100% { transform: scale(0.8); opacity: 0.5; }
-              50% { transform: scale(1.2); opacity: 0.8; }
           }
           
           .verification-label {
-              font-size: 14px;
-              color: #7a8b9a;
-              margin-bottom: 10px;
-              font-weight: 500;
-              position: relative;
-              z-index: 2;
+              font-size: 13px;
+              color: #64748b;
+              margin-bottom: 15px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
           }
           
           .verification-code {
               display: inline-block;
-              font-size: 32px;
+              font-size: 36px;
               color: #ff748b;
               background: #ffffff;
-              border: 3px solid #ff748b;
-              padding: 15px 25px;
-              border-radius: 8px;
+              border: 3px dashed #ff748b;
+              padding: 16px 32px;
+              border-radius: 10px;
               font-weight: 800;
-              letter-spacing: 4px;
-              font-family: 'Monaco', 'Menlo', monospace;
-              box-shadow: 0 4px 15px rgba(255, 116, 139, 0.3);
-              position: relative;
-              z-index: 2;
-              transition: all 0.3s ease;
+              letter-spacing: 8px;
+              font-family: 'Courier New', monospace;
+              margin-bottom: 20px;
           }
           
-          .verification-code:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 6px 20px rgba(255, 116, 139, 0.4);
-          }
-          
-          .instructions {
-              margin: 25px 0;
-              padding: 20px;
-              background: #f8fafc;
+          .verify-button {
+              display: inline-block;
+              background: linear-gradient(135deg, #2dbdb6 0%, #20a89e 100%);
+              color: #ffffff !important;
+              padding: 14px 32px;
               border-radius: 8px;
-              border-left: 4px solid #2dbdb6;
-          }
-          
-          .instructions h3 {
-              color: #2dbdb6;
-              font-size: 16px;
-              margin-bottom: 10px;
               font-weight: 600;
+              text-decoration: none;
+              font-size: 15px;
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+              box-shadow: 0 4px 12px rgba(45, 189, 182, 0.3);
           }
           
-          .instructions p {
-              color: #5a6c7d;
+          .verify-button:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(45, 189, 182, 0.4);
+          }
+          
+          .divider-text {
+              text-align: center;
+              margin: 20px 0;
+              color: #94a3b8;
+              font-size: 13px;
+              position: relative;
+          }
+          
+          .divider-text::before,
+          .divider-text::after {
+              content: '';
+              position: absolute;
+              top: 50%;
+              width: 40%;
+              height: 1px;
+              background: #e2e8f0;
+          }
+          
+          .divider-text::before {
+              left: 0;
+          }
+          
+          .divider-text::after {
+              right: 0;
+          }
+          
+          .info-box {
+              background: #f8fafc;
+              border-left: 4px solid #2dbdb6;
+              border-radius: 6px;
+              padding: 20px;
+              margin: 25px 0;
+          }
+          
+          .info-box-title {
+              color: #2dbdb6;
+              font-size: 15px;
+              margin-bottom: 12px;
+              font-weight: 700;
+          }
+          
+          .info-box-item {
+              color: #64748b;
               font-size: 14px;
-              margin: 5px 0;
+              margin: 8px 0;
+              padding-left: 20px;
+              position: relative;
+          }
+          
+          .info-box-item::before {
+              content: '→';
+              position: absolute;
+              left: 0;
+              color: #2dbdb6;
+              font-weight: bold;
           }
           
           .security-note {
-              background: #fff9e6;
-              border: 1px solid #ffd700;
+              background: #fffbeb;
+              border: 1px solid #fcd34d;
               border-radius: 8px;
-              padding: 15px;
-              margin: 20px 0;
+              padding: 16px;
+              margin: 25px 0;
               font-size: 13px;
-              color: #8b7300;
+              color: #92400e;
+              line-height: 1.5;
+          }
+          
+          .security-note strong {
+              color: #78350f;
           }
           
           .footer {
@@ -187,17 +200,17 @@ const Verification_Email_Template = `
               border-top: 1px solid #e2e8f0;
           }
           
-          .company-info {
-              color: #64748b;
-              font-size: 14px;
+          .company-name {
+              color: #1e293b;
+              font-size: 16px;
               margin-bottom: 15px;
-              font-weight: 600;
+              font-weight: 700;
           }
           
           .contact-info {
-              color: #94a3b8;
-              font-size: 12px;
-              line-height: 1.5;
+              color: #64748b;
+              font-size: 13px;
+              line-height: 1.8;
           }
           
           .contact-info a {
@@ -209,42 +222,15 @@ const Verification_Email_Template = `
               text-decoration: underline;
           }
           
-          .social-links {
-              margin-top: 15px;
-          }
-          
-          .social-link {
-              display: inline-block;
-              width: 32px;
-              height: 32px;
-              background: linear-gradient(135deg, #ff748b, #2dbdb6);
-              border-radius: 50%;
-              margin: 0 5px;
-              line-height: 32px;
-              color: white;
-              text-decoration: none;
-              font-size: 14px;
-              transition: transform 0.3s ease;
-          }
-          
-          .social-link:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-          }
-          
-          .divider {
-              height: 1px;
-              background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
-              margin: 20px 0;
+          .copyright {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #94a3b8;
           }
           
           @media (max-width: 600px) {
               .email-wrapper {
                   padding: 20px 10px;
-              }
-              
-              .container {
-                  border-radius: 8px;
               }
               
               .header {
@@ -256,13 +242,17 @@ const Verification_Email_Template = `
               }
               
               .verification-code {
-                  font-size: 24px;
-                  padding: 12px 20px;
-                  letter-spacing: 2px;
+                  font-size: 28px;
+                  padding: 14px 24px;
+                  letter-spacing: 4px;
               }
               
               .logo {
                   font-size: 24px;
+              }
+              
+              .welcome-text {
+                  font-size: 20px;
               }
               
               .footer {
@@ -275,76 +265,48 @@ const Verification_Email_Template = `
       <div class="email-wrapper">
           <div class="container">
               <div class="header">
-                  <div class="header-content">
-                      <div class="logo">🚗 Causeway Car Rental</div>
-                      <div class="subtitle">Your Journey Begins Here</div>
-                  </div>
+                  <div class="logo">🚗 Causeway Car Rental</div>
+                  <div class="subtitle">Your Journey Begins Here</div>
               </div>
               
               <div class="content">
                   <div class="welcome-text">Welcome aboard!</div>
                   <div class="description">
-                      Thank you for choosing Causeway Car Rental. We're excited to help you explore new destinations with confidence and comfort.
+                      Thank you for choosing Causeway Car Rental. We're excited to help you explore new destinations with confidence and comfort. Please verify your email to complete your registration.
                   </div>
                   
                   <div class="verification-section">
                       <div class="verification-label">Your Verification Code</div>
                       <div class="verification-code">{verificationCode}</div>
+                      
+                    
+                   
                   </div>
                   
-                  <div class="instructions">
-                      <h3>🔐 Next Steps:</h3>
-                      <p>• Copy the verification code above</p>
-                      <p>• Return to the registration page</p>
-                      <p>• Paste the code in the verification field</p>
-                      <p>• Complete your account setup</p>
+                  <div class="info-box">
+                      <div class="info-box-title">How to verify:</div>
+                      <div class="info-box-item">Copy the verification code above</div>
+                      <div class="info-box-item">Return to the registration page</div>
+                      <div class="info-box-item">Paste the code in the verification field</div>
+          
                   </div>
                   
                   <div class="security-note">
-                      <strong>⚠️ Security Notice:</strong> This code will expire in 10 minutes. If you didn't create an account with Causeway Car Rental, please ignore this email.
+                      <strong>⚠️ Security Notice:</strong> This code will expire in 10 minutes. If you didn't create an account with Causeway Car Rental, please ignore this email or contact our support team.
                   </div>
-                  
-                  <div class="divider"></div>
-                  
-                  <p style="color: #64748b; font-size: 14px;">
-                      Questions? Our customer support team is here to help you 24/7. 
-                      <a href="mailto:support@causewayrental.com" style="color: #2dbdb6; text-decoration: none;">Contact us</a>
-                  </p>
               </div>
-
-              <div class="verification-section">
-                <div class="verification-label">Your Verification Code</div>
-                <div class="verification-code">{verificationCode}</div>
-                
-                <p style="margin:20px 0;color:#5a6c7d;font-size:14px;">
-                    Or simply click the button below to verify:
-                </p>
-                <a href="{verificationLink}" 
-                    style="display:inline-block;background:#2dbdb6;color:#fff;
-                            padding:12px 24px;border-radius:6px;
-                            font-weight:bold;text-decoration:none;">
-                    clieck to Verify
-                </a>
-                </div>
-
               
               <div class="footer">
-                  <div class="company-info">
-                      Causeway Car Rental
-                  </div>
+                  <div class="company-name">Causeway Car Rental</div>
                   
                   <div class="contact-info">
-                      📧 support@causewayrental.com | 📱 +1 (555) 123-4567<br>
-                      🏢 123 Rental Street, City, State 12345
+                      📧 <a href="mailto:causwaycarrental@gmail.com">causwaycarrental@gmail.com</a><br>
+                      📱 <a href="tel:+60139277180">+60 13-927 7180</a><br>
+                      📍 24456 Japan Tun Abdul Razak 1/1, Wadi Hana<br>
+                      80000 Johor Bahru, Johor, Malaysia
                   </div>
                   
-                  <div class="social-links">
-                      <a href="#" class="social-link" title="Facebook">f</a>
-                      <a href="#" class="social-link" title="Twitter">t</a>
-                      <a href="#" class="social-link" title="Instagram">i</a>
-                  </div>
-                  
-                  <div style="margin-top: 20px; font-size: 11px; color: #94a3b8;">
+                  <div class="copyright">
                       &copy; ${new Date().getFullYear()} Causeway Car Rental. All rights reserved.
                   </div>
               </div>

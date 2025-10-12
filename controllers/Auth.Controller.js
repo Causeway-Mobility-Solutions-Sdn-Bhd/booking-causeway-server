@@ -267,8 +267,9 @@ const ResendVerification = asyncHandler(async (req, res) => {
     (user.verficationTokenExpiresAt = Date.now() + 90 * 1000),
       await user.save();
 
+    const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${user.clientToken}`;
     const name = `${user.firstName} ${user.lastName}`;
-    await sendVerificationEamil(user.email, verficationToken);
+    await sendVerificationEamil(user.email, verficationToken, clientUrl);
 
     return res.status(200).json({
       success: true,
