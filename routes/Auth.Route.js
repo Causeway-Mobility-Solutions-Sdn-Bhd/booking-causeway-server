@@ -6,6 +6,7 @@ const {
   RefreshToken,
   ResendVerification,
   VerifyClientToken,
+  LogoutUser,
 } = require("../controllers/Auth.Controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
 
@@ -17,5 +18,6 @@ router.post("/verify-client/:clientToken", apiKeyAuth, VerifyClientToken);
 router.post("/resend-verify", apiKeyAuth, ResendVerification);
 router.post("/login", apiKeyAuth, Login);
 router.post("/refresh", apiKeyAuth, RefreshToken);
+router.post("/logout", apiKeyAuth, LogoutUser);
 
 module.exports = router;

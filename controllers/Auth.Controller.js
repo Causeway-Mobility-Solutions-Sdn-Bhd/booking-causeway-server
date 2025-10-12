@@ -433,6 +433,36 @@ const GetCurrentUser = asyncHandler(async (req, res) => {
   }
 });
 
+const LogoutUser = asyncHandler(async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Already logged out" });
+    }
+
+    // Find user and clear their refresh token
+    const user = await Usermodel.findOne({ refreshToken });
+
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
+    }
+
+    // Clear the cookie
+    return res.clearCookie("refreshToken", cookieOptions).status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.log("Logout error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
 module.exports = {
   Reigster,
   VerifyEmail,
@@ -441,4 +471,5 @@ module.exports = {
   ResendVerification,
   VerifyClientToken,
   GetCurrentUser,
+  LogoutUser,
 };
