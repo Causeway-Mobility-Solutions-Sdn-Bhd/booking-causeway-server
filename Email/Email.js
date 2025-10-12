@@ -72,7 +72,7 @@ const sendPartnerNotificationEmail = async (formData) => {
     console.log("Partner email sent successfully:", response.messageId);
     return response;
   } catch (error) {
-    console.error("Partner email error:", error);
+    console.log("Partner email error:", error);
     throw error;
   }
 };

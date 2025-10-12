@@ -20,7 +20,7 @@ const partnerEmail = async (req, res) => {
       message: "Partner notification sent successfully",
     });
   } catch (error) {
-    console.error("Partner email controller error:", error);
+    console.log("Partner email controller error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to send partner notification",
