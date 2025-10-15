@@ -358,7 +358,6 @@ const RefreshToken = asyncHandler(async (req, res) => {
     }
 
     const user = await Usermodel.findOne({ refreshToken });
-    console.log(user);
 
     if (!user) {
       return res
@@ -463,6 +462,32 @@ const LogoutUser = asyncHandler(async (req, res) => {
       .json({ success: false, message: "Internal server error" });
   }
 });
+
+const testPermission = asyncHandler(async (req, res) => {
+  try {
+    // If verifyToken middleware ran before this route,
+    // req.user should already be available.
+    if (req.user) {
+      return res.status(200).json({
+        success: true,
+        message: "Permission granted",
+        user: req.user, // optional — shows decoded token data
+      });
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: "No permission — user not authenticated",
+      });
+    }
+  } catch (error) {
+    console.error("Permission check failed:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+});
+
 module.exports = {
   Reigster,
   VerifyEmail,
@@ -472,4 +497,5 @@ module.exports = {
   VerifyClientToken,
   GetCurrentUser,
   LogoutUser,
+  testPermission,
 };
