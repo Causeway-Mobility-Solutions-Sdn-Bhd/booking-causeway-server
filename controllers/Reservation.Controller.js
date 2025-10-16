@@ -29,6 +29,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     fuelType,
     transmission,
     connectivity,
+    customer_id,
   } = req.body;
 
   console.log(req?.body);
@@ -122,6 +123,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       selected_additional_charges: ["20"],
       brand_id,
       step: 2,
+      ...(customer_id && { customer_id }),
     };
 
     let savedReservation;
@@ -521,10 +523,10 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
 const confirmReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
-    const { couponCode , isRemove  } = req.body;
-    console.log(isRemove , "remove")
+    const { couponCode, isRemove } = req.body;
+    console.log(isRemove, "remove");
     console.log(reservationAttemptId);
-    
+
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
     const formattedReservation = {
@@ -542,10 +544,10 @@ const confirmReservation = asyncHandler(async (req, res) => {
     };
 
     console.log({
-          coupon_code: couponCode,
-          // ...(couponCode && { add_discount: 1 }),
-          ...(isRemove ? {remove_discount : 1} : {add_discount : 1} )
-        })
+      coupon_code: couponCode,
+      // ...(couponCode && { add_discount: 1 }),
+      ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
+    });
 
     let response;
     if (reservation.reservation_id) {
@@ -554,7 +556,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
         {
           coupon_code: couponCode,
           // ...(couponCode && { add_discount: 1 }),
-          ...(isRemove ? {remove_discount : 1} : {add_discount : 1} )
+          ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
         }
       );
       console.log("updat");
@@ -571,7 +573,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
       const id = response?.data?.data?.reservation?.id;
       reservation.reservation_id = id;
       reservation.isConformed = true;
-      console.log(reservation)
+      console.log(reservation);
       await reservation.save();
       const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }
