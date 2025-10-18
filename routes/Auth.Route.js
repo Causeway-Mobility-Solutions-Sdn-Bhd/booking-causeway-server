@@ -8,6 +8,7 @@ const {
   VerifyClientToken,
   LogoutUser,
   testPermission,
+  ResetPassword,
 } = require("../controllers/Auth.Controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
 const { verifyToken } = require("../middleware/auth.middleware");
@@ -22,5 +23,6 @@ router.post("/login", apiKeyAuth, Login);
 router.post("/refresh", apiKeyAuth, RefreshToken);
 router.get("/test-permission", apiKeyAuth, verifyToken, testPermission);
 router.post("/logout", apiKeyAuth, LogoutUser);
+router.post("/reset-password", apiKeyAuth, verifyToken, ResetPassword);
 
 module.exports = router;
