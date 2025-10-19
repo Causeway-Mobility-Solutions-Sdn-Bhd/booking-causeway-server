@@ -31,14 +31,16 @@ const userShcema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    HqId : {
-      type : Number,
-      required:false,
+    HqId: {
+      type: Number,
+      required: false,
     },
     verficationToken: String,
     verficationTokenExpiresAt: Date,
     clientToken: String,
     clientTokenExpiresAt: Date,
+    forgotPasswordToken: { type: String, default: "" },
+    forgotPasswordExpiresAt: { type: Date },
     resetPasswordToken: String,
   },
   { timestamps: true }

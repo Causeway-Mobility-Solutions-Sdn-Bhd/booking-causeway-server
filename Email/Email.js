@@ -3,6 +3,7 @@ const {
   Verification_Email_Template,
   Welcome_Email_Template,
   Partner_Notification_Template,
+  Forgot_Password_Email_Template,
 } = require("./EmailTemplate.js");
 
 const sendVerificationEamil = async (
@@ -23,12 +24,35 @@ const sendVerificationEamil = async (
       text: "Verify your Email",
       html: htmlContent,
     });
-    console.log(response)
+    console.log(response);
   } catch (error) {
     console.log("Email error", error);
   }
 };
 
+const sendResetPasswordEmail = async (
+  email,
+  verificationCode,
+  verificationLink
+) => {
+  try {
+    const htmlContent = Forgot_Password_Email_Template.replace(
+      "{verificationCode}",
+      verificationCode
+    ).replace("{verificationLink}", verificationLink);
+
+    const response = await transporter.sendMail({
+      from: '"Causeway Carrental" <causewaycarrental@gmail.com>',
+      to: email,
+      subject: "Reset Password",
+      text: "Use the OTP or link to reset your password.",
+      html: htmlContent,
+    });
+    console.log(response);
+  } catch (error) {
+    console.log("Email error", error);
+  }
+};
 const senWelcomeEmail = async (email, name) => {
   try {
     const response = await transporter.sendMail({
@@ -81,4 +105,5 @@ module.exports = {
   senWelcomeEmail,
   sendVerificationEamil,
   sendPartnerNotificationEmail,
+  sendResetPasswordEmail,
 };

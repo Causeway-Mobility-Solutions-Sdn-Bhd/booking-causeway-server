@@ -315,6 +315,278 @@ const Verification_Email_Template = `
   </body>
   </html>
 `;
+const Forgot_Password_Email_Template = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Reset Your Password - Causeway Car Rental</title>
+      <style>
+          * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+          }
+          
+          body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+              background: #f5f7fa;
+              min-height: 100vh;
+          }
+          
+          .email-wrapper {
+              padding: 40px 20px;
+          }
+          
+          .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: #ffffff;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+              overflow: hidden;
+          }
+          
+          .header {
+              background: linear-gradient(135deg, #2dbdb6 0%, #ff748b 100%);
+              color: white;
+              padding: 40px 30px;
+              text-align: center;
+          }
+          
+          .logo {
+              font-size: 28px;
+              font-weight: 700;
+              margin-bottom: 8px;
+          }
+          
+          .subtitle {
+              font-size: 15px;
+              opacity: 0.95;
+              font-weight: 400;
+          }
+          
+          .content {
+              padding: 40px 30px;
+              color: #2c3e50;
+          }
+          
+          .welcome-text {
+              font-size: 24px;
+              margin-bottom: 12px;
+              color: #1a202c;
+              font-weight: 700;
+          }
+          
+          .description {
+              font-size: 15px;
+              color: #64748b;
+              margin-bottom: 30px;
+              line-height: 1.6;
+          }
+
+          .reset-section {
+              background: linear-gradient(135deg, #fff5f7 0%, #f0fdfc 100%);
+              border-radius: 12px;
+              padding: 30px;
+              margin: 30px 0;
+              text-align: center;
+              border: 2px solid #ffe4e9;
+          }
+
+          .reset-label {
+              font-size: 13px;
+              color: #64748b;
+              margin-bottom: 15px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+          }
+
+          .otp-code {
+              display: inline-block;
+              font-size: 32px;
+              color: #ff748b;
+              background: #ffffff;
+              border: 3px dashed #ff748b;
+              padding: 14px 28px;
+              border-radius: 10px;
+              font-weight: 800;
+              letter-spacing: 8px;
+              font-family: 'Courier New', monospace;
+              margin-bottom: 25px;
+          }
+
+          .reset-button {
+              display: inline-block;
+              background: linear-gradient(135deg, #2dbdb6 0%, #20a89e 100%);
+              color: #ffffff !important;
+              padding: 14px 32px;
+              border-radius: 8px;
+              font-weight: 600;
+              text-decoration: none;
+              font-size: 15px;
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+              box-shadow: 0 4px 12px rgba(45, 189, 182, 0.3);
+          }
+
+          .reset-button:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(45, 189, 182, 0.4);
+          }
+
+          .divider-text {
+              text-align: center;
+              margin: 25px 0;
+              color: #94a3b8;
+              font-size: 13px;
+              position: relative;
+          }
+
+          .divider-text::before,
+          .divider-text::after {
+              content: '';
+              position: absolute;
+              top: 50%;
+              width: 40%;
+              height: 1px;
+              background: #e2e8f0;
+          }
+
+          .divider-text::before { left: 0; }
+          .divider-text::after { right: 0; }
+
+          .security-note {
+              background: #fffbeb;
+              border: 1px solid #fcd34d;
+              border-radius: 8px;
+              padding: 16px;
+              margin: 25px 0;
+              font-size: 13px;
+              color: #92400e;
+              line-height: 1.5;
+          }
+          
+          .security-note strong {
+              color: #78350f;
+          }
+
+          .footer {
+              background: #f8fafc;
+              padding: 30px;
+              text-align: center;
+              border-top: 1px solid #e2e8f0;
+          }
+          
+          .company-name {
+              color: #1e293b;
+              font-size: 16px;
+              margin-bottom: 15px;
+              font-weight: 700;
+          }
+          
+          .contact-info {
+              color: #64748b;
+              font-size: 13px;
+              line-height: 1.8;
+          }
+          
+          .contact-info a {
+              color: #2dbdb6;
+              text-decoration: none;
+          }
+          
+          .contact-info a:hover {
+              text-decoration: underline;
+          }
+          
+          .copyright {
+              margin-top: 20px;
+              font-size: 12px;
+              color: #94a3b8;
+          }
+
+          @media (max-width: 600px) {
+              .email-wrapper {
+                  padding: 20px 10px;
+              }
+              
+              .header {
+                  padding: 30px 20px;
+              }
+              
+              .content {
+                  padding: 30px 20px;
+              }
+
+              .otp-code {
+                  font-size: 26px;
+                  padding: 12px 22px;
+                  letter-spacing: 4px;
+              }
+
+              .logo {
+                  font-size: 24px;
+              }
+              
+              .welcome-text {
+                  font-size: 20px;
+              }
+              
+              .footer {
+                  padding: 25px 20px;
+              }
+          }
+      </style>
+  </head>
+  <body>
+      <div class="email-wrapper">
+          <div class="container">
+              <div class="header">
+                  <div class="logo">🚗 Causeway Car Rental</div>
+                  <div class="subtitle">Your Journey Begins Here</div>
+              </div>
+              
+              <div class="content">
+                  <div class="welcome-text">Reset Your Password</div>
+                  <div class="description">
+                      We received a request to reset your password for your Causeway Car Rental account. You can reset your password using the OTP below or by clicking the button.
+                  </div>
+
+                  <div class="reset-section">
+                      <div class="reset-label">Your OTP Code</div>
+                      <div class="otp-code">{verificationCode}</div>
+
+                      <div class="divider-text">or</div>
+
+                      <a href="{verificationLink}" class="reset-button">Reset Password</a>
+                  </div>
+
+                  <div class="security-note">
+                      <strong>⚠️ Security Notice:</strong> This OTP and link will expire in 10 minutes. If you didn’t request this change, please ignore this email or contact our support team immediately.
+                  </div>
+              </div>
+
+              <div class="footer">
+                  <div class="company-name">Causeway Car Rental</div>
+                  
+                  <div class="contact-info">
+                      📧 <a href="mailto:causwaycarrental@gmail.com">causwaycarrental@gmail.com</a><br>
+                      📱 <a href="tel:+60139277180">+60 13-927 7180</a><br>
+                      📍 24456 Japan Tun Abdul Razak 1/1, Wadi Hana<br>
+                      80000 Johor Bahru, Johor, Malaysia
+                  </div>
+                  
+                  <div class="copyright">
+                      &copy; ${new Date().getFullYear()} Causeway Car Rental. All rights reserved.
+                  </div>
+              </div>
+          </div>
+      </div>
+  </body>
+  </html>
+`;
 
 const Welcome_Email_Template = `
   <!DOCTYPE html>
@@ -1257,4 +1529,5 @@ module.exports = {
   Welcome_Email_Template,
   Verification_Email_Template,
   Partner_Notification_Template,
+  Forgot_Password_Email_Template,
 };

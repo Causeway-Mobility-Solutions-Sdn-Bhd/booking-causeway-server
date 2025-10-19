@@ -1,5 +1,9 @@
 const bcryptjs = require("bcryptjs");
-const { sendVerificationEamil, senWelcomeEmail } = require("../Email/Email.js");
+const {
+  sendVerificationEamil,
+  senWelcomeEmail,
+  sendResetPasswordEmail,
+} = require("../Email/Email.js");
 const Usermodel = require("../models/User.js");
 const {
   generateAccessToken,
@@ -552,6 +556,224 @@ const ResetPassword = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Request Password Reset
+//@Route POST /auth/request-password-reset
+//@Access Public
+const ForgotPassword = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await Usermodel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this email",
+      });
+    }
+
+    if (!user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your email before resetting password.",
+      });
+    }
+
+    // Generate OTP and token
+    const resetOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    const clientToken = generateSessionId();
+
+    user.forgotPasswordToken = resetOTP;
+    user.clientToken = clientToken;
+    user.forgotPasswordExpiresAt = Date.now() + 90 * 1000;
+    user.clientTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+
+    await user.save();
+
+    const resetUrl = `${process.env.CLIENT_URL}/forgot-password/${clientToken}`;
+    await sendResetPasswordEmail(user.email, resetOTP, resetUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset OTP sent to your email",
+      data: {
+        clientToken,
+        expiresAt: user.forgotPasswordExpiresAt,
+      },
+    });
+  } catch (error) {
+    console.log("RequestPasswordReset error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+//@DESC Verify Password Reset OTP
+//@Route POST /auth/verify-reset-otp
+//@Access Public
+const VerifyResetOTP = asyncHandler(async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP code is required",
+      });
+    }
+
+    const user = await Usermodel.findOne({ forgotPasswordToken: code });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP code",
+      });
+    }
+
+    if (
+      !user.forgotPasswordExpiresAt ||
+      user.forgotPasswordExpiresAt.getTime() < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired. Please request a new one.",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      clientToken: user.clientToken,
+    });
+  } catch (error) {
+    console.log("VerifyResetOTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+
+//@DESC Reset Password
+//@Route POST /auth/reset-password/:clientToken
+//@Access Public
+const ResetForgotPassword = asyncHandler(async (req, res) => {
+  try {
+    const { clientToken } = req.params;
+    const { newPassword } = req.body;
+
+    if (!clientToken || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Token and new password are required",
+      });
+    }
+
+    const user = await Usermodel.findOne({ clientToken });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired client token",
+      });
+    }
+
+    if (
+      !user.clientTokenExpiresAt ||
+      user.clientTokenExpiresAt.getTime() < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset link expired. Please request a new one.",
+      });
+    }
+
+    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    user.forgotPasswordToken = "";
+    user.forgotPasswordExpiresAt = undefined;
+    user.clientToken = "";
+    user.clientTokenExpiresAt = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully. You can now login.",
+    });
+  } catch (error) {
+    console.log("ResetPassword error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+});
+const ResendForgotPasswordOtp = asyncHandler(async (req, res) => {
+  try {
+    const { email, clientToken } = req.body;
+
+    if (!email || !clientToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and clientToken are required for resending OTP",
+      });
+    }
+
+    const user = await Usermodel.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No account found" });
+    }
+
+    if (
+      !user.clientToken ||
+      user.clientToken !== clientToken ||
+      !user.clientTokenExpiresAt ||
+      user.clientTokenExpiresAt < Date.now()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Invalid or expired client token. Please restart the forgot-password flow.",
+      });
+    }
+
+    const resetOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    user.forgotPasswordToken = resetOTP;
+    user.forgotPasswordExpiresAt = Date.now() + 90 * 1000;
+
+    await user.save();
+
+    const resetUrl = `${process.env.CLIENT_URL}/forgot-password/${clientToken}`;
+    await sendResetPasswordEmail(user.email, resetOTP, resetUrl);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset OTP resent to your email",
+      data: {
+        clientToken: user.clientToken,
+        expiresAt: user.forgotPasswordExpiresAt,
+      },
+    });
+  } catch (error) {
+    console.error("resendForgotPasswordOtp error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
 module.exports = {
   Reigster,
   VerifyEmail,
@@ -563,4 +785,8 @@ module.exports = {
   LogoutUser,
   testPermission,
   ResetPassword,
+  ForgotPassword,
+  VerifyResetOTP,
+  ResetForgotPassword,
+  ResendForgotPasswordOtp,
 };
