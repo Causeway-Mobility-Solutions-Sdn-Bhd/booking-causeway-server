@@ -103,30 +103,30 @@ const Login = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Invalid credentials" });
     }
 
-    if (!user.isVerified) {
-      const verficationToken = Math.floor(
-        100000 + Math.random() * 900000
-      ).toString(); // 6-digit OTP
+    // if (!user.isVerified) {
+    //   const verficationToken = Math.floor(
+    //     100000 + Math.random() * 900000
+    //   ).toString(); // 6-digit OTP
 
-      const clientToken = generateSessionId();
+    //   const clientToken = generateSessionId();
 
-      user.verficationToken = verficationToken;
-      user.clientToken = clientToken;
-      user.verficationTokenExpiresAt = Date.now() + 90 * 1000;
-      user.clientTokenExpiresAt = Date.now() + 10 * 60 * 1000;
+    //   user.verficationToken = verficationToken;
+    //   user.clientToken = clientToken;
+    //   user.verficationTokenExpiresAt = Date.now() + 90 * 1000;
+    //   user.clientTokenExpiresAt = Date.now() + 10 * 60 * 1000;
 
-      await user.save();
+    //   await user.save();
 
-      const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
-      await sendVerificationEamil(user.email, verficationToken, clientUrl);
+    //   const clientUrl = `${process.env.CLIENT_URL}/otp-verify/${clientToken}`;
+    //   await sendVerificationEamil(user.email, verficationToken, clientUrl);
 
-      return res.status(401).json({
-        success: false,
-        message: "Please verify your email first. Verification link re-sent.",
+    //   return res.status(401).json({
+    //     success: false,
+    //     message: "Please verify your email first. Verification link re-sent.",
 
-        clientToken,
-      });
-    }
+    //     clientToken,
+    //   });
+    // }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
