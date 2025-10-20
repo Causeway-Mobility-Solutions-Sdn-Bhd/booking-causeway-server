@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const { generateSessionId } = require("../lib/idGenerator.js");
 const hqApi = require("../hq/hqApi");
+const ReservationAttempt = require("../models/ReservationAttempt.js");
 
 //@DESC Register
 //@Route POST /auth/register
@@ -136,6 +137,16 @@ const Login = asyncHandler(async (req, res) => {
 
     const name = `${user.firstName} ${user.lastName}`;
 
+    const reservationAttemptId = req.reservationAttemptId;
+    if (reservationAttemptId) {
+      console.log("ID IS THERE");
+
+      const savedReservation = await ReservationAttempt.findById(
+        reservationAttemptId
+      );
+      savedReservation.customer_id = user.HqId;
+      await savedReservation.save();
+    }
     res
       .cookie("refreshToken", refreshToken, cookieOptions)
       .status(200)

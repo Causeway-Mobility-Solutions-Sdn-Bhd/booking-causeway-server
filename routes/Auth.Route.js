@@ -17,14 +17,17 @@ const {
 } = require("../controllers/Auth.Controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
 const { verifyToken } = require("../middleware/auth.middleware");
+const {
+  reservationAttempt,
+} = require("../middleware/reservationAttempt.middlware");
 
 const router = express.Router();
 
-router.post("/register", apiKeyAuth, Reigster);
+router.post("/register", apiKeyAuth, reservationAttempt, Reigster);
 router.post("/verify", apiKeyAuth, VerifyEmail);
 router.post("/verify-client/:clientToken", apiKeyAuth, VerifyClientToken);
 router.post("/resend-verify", apiKeyAuth, ResendVerification);
-router.post("/login", apiKeyAuth, Login);
+router.post("/login", apiKeyAuth, reservationAttempt, Login);
 router.post("/refresh", apiKeyAuth, RefreshToken);
 router.get("/test-permission", apiKeyAuth, verifyToken, testPermission);
 router.post("/logout", apiKeyAuth, LogoutUser);
