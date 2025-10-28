@@ -65,8 +65,6 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       }
     );
 
-    console.log(reservationResponse);
-
     // ✅ Step 3: Get vehicles + classTypeArray from cache
     const cacheKey = "vehicles_with_classMap";
     let cachedData = cache.get(cacheKey);
@@ -253,6 +251,7 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
         item.features.some((f) => f.id === transmission)
       );
     }
+    console.log(isCreate);
 
     if (isCreate) {
       res.cookie("ssid", savedReservation._id.toString(), cookieOptions);
@@ -624,8 +623,6 @@ const getReservation = asyncHandler(async (req, res) => {
     const reservationAttemptId = req.reservationAttemptId;
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
     const id = reservation?.reservation_id;
-    console.log(reservation);
-
     const response = await hqApi.get(`/car-rental/reservations/${id}`);
 
     const responseAgrrement = await hqApi.get(
@@ -644,6 +641,28 @@ const getReservation = asyncHandler(async (req, res) => {
   }
 });
 
+const getReservationById = asyncHandler(async (req, res) => {
+  try {
+    const { id: reservationAttemptId } = req.params;
+    const reservation = await ReservationAttempt.findById(reservationAttemptId);
+    const id = reservation?.reservation_id;
+
+    const response = await hqApi.get(`/car-rental/reservations/${id}`);
+
+    const responseAgrrement = await hqApi.get(
+      `/car-rental/reservations/${id}/rental-agreement`
+    );
+
+    res
+      .status(200)
+      .json({ ...response?.data, rental_agreement: responseAgrrement?.data });
+  } catch (error) {
+    console.log("Error fetching reservation:", error);
+    res.status(error.response?.status || 500).json({
+      message: "Failed to fetch reservation",
+    });
+  }
+});
 // @DESC   Get a Reservation Attempt by ID
 // @ROUTE  GET /car-rental/reservations/reservation-attempts
 // @ACCESS Private
@@ -705,4 +724,5 @@ module.exports = {
   getReservation,
   confirmReservation,
   processPayment,
+  getReservationById,
 };
