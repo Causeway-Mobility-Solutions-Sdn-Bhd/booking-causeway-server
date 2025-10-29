@@ -83,7 +83,21 @@ const getAllReservations = asyncHandler(async (req, res) => {
     });
   }
 });
+const formatDateTimeParts = (datetimeString) => {
+  const dateObj = new Date(datetimeString);
 
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+
+  const hh = String(dateObj.getHours()).padStart(2, "0");
+  const min = String(dateObj.getMinutes()).padStart(2, "0");
+
+  return {
+    date: `${yyyy}-${mm}-${dd}`,
+    time: `${hh}:${min}`,
+  };
+};
 const updatePickupReturnLocation = asyncHandler(async (req, res) => {
   const {
     pick_up_date,
@@ -123,7 +137,7 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
 
     const reservedVehicleClassId = reservation.vehicle_class_id;
 
-    // 🔍 Check available classes for the new dates
+    // Check available classes for the new dates
     const response = await hqApi.post("car-rental/reservations/dates", {
       pick_up_date,
       pick_up_time,
@@ -135,7 +149,12 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
     });
 
     const applicable_classes = response?.data?.data?.applicable_classes || [];
-    const availableIds = applicable_classes.map((cls) => cls.vehicle_class_id);
+    const availableClassesFiltered = applicable_classes.filter(
+      (cls) => cls.availability.quantity > 0
+    );
+    const availableIds = availableClassesFiltered.map(
+      (cls) => cls.vehicle_class_id
+    );
 
     if (!availableIds.includes(Number(reservedVehicleClassId))) {
       return res.status(200).json({
@@ -143,7 +162,7 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
         message: "Selected vehicle class is not available.",
       });
     }
-
+    let updatedReservation;
     const locationChanged =
       reservation.pick_up_location?.id !== pick_up_location ||
       reservation.return_location?.id !== return_location;
@@ -158,7 +177,7 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
 
     if (datesChanged) {
       const dateUpdate = await hqApi.post(
-        `car-rental/reservations/${reservation_id}/update`,
+        `car-rental/reservations/${reservation.reservation_id}/update`,
         {
           pick_up_date,
           pick_up_time,
@@ -166,36 +185,45 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
           return_time,
         }
       );
+      updatedReservation = dateUpdate.data.data.reservation;
       results.push({ type: "dates", status: dateUpdate.status });
     }
 
     if (locationChanged) {
+      const vehicleClass = Number(reservedVehicleClassId);
       const locationUpdate = await hqApi.post(
-        `car-rental/reservations/${reservation_id}/update`,
+        `car-rental/reservations/${reservation.reservation_id}/update`,
         {
           pick_up_location,
           return_location,
-          vehicle_class_id: reservation.vehicle_class_id,
+          vehicle_class_id: vehicleClass,
         }
       );
+      if (locationUpdate.data.data.success) {
+        updatedReservation = locationUpdate.data.data.reservation;
+      }
       results.push({ type: "locations", status: locationUpdate.status });
     }
+    if (updatedReservation) {
+      const pickup = formatDateTimeParts(updatedReservation.pick_up_date);
+      const ret = formatDateTimeParts(updatedReservation.return_date);
+      // Update DB record
 
-    // Update DB record
-    await ReservationAttempt.updateOne(
-      { _id: reservation_ssid },
-      {
-        $set: {
-          pick_up_date,
-          pick_up_time,
-          return_date,
-          return_time,
-          pick_up_location,
-          return_location,
-          updatedAt: new Date(),
-        },
-      }
-    );
+      await ReservationAttempt.updateOne(
+        { _id: reservation_ssid },
+        {
+          $set: {
+            pick_up_date: pickup?.date,
+            pick_up_time: pickup?.time,
+            return_date: ret?.date,
+            return_time: ret?.time,
+            pick_up_location: updatedReservation?.pick_up_location,
+            return_location: updatedReservation?.return_location,
+            updatedAt: new Date(),
+          },
+        }
+      );
+    }
 
     return res.status(200).json({
       success: true,
