@@ -9,12 +9,11 @@ const { verifyToken } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-router.get("/manage-reservations", apiKeyAuth, getAllReservations);
+router.get("/", apiKeyAuth, verifyToken, getAllReservations);
 router.post(
   "/update-reservation-pickup",
   apiKeyAuth,
   updatePickupReturnLocation
 );
-router.get("/get-all-reservation", apiKeyAuth, verifyToken, getAllReservations);
 
 module.exports = router;
