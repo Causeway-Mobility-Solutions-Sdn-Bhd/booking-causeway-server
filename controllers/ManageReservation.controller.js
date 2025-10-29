@@ -2,8 +2,8 @@ const asyncHandler = require("express-async-handler");
 const Usermodel = require("../models/User.js");
 const hqApi = require("../hq/hqApi");
 
-// @DESC Get All Reservations Related To User (Simplified)
-// @Route GET /car-rental/manage-reservations
+// @DESC Get All Reservations Related To User
+// @Route GET /car-rental/manage-reservations/get-all-reservation
 // @Access Private
 const getAllReservations = asyncHandler(async (req, res) => {
   try {
@@ -36,7 +36,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
 
     const hqReservations = response?.data?.data || [];
 
-    // 🧹 Exclude "pending" reservations
     const validReservations = hqReservations.filter(
       (r) => r.status?.toLowerCase() !== "pending"
     );
