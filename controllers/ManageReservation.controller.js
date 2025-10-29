@@ -10,31 +10,28 @@ const getAllReservations = asyncHandler(async (req, res) => {
     const user = req.user;
 
     const dbUser = await Usermodel.findById(user.id);
+    console.log("DB USER", dbUser);
     if (!dbUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     const filters = JSON.stringify([
       {
-        type: "number",
+        type: "string",
         column: "customer_id",
         operator: "equals",
-        value: dbUser.HqId,
+        value: String(dbUser.HqId), 
       },
     ]);
+    console.log(
+      `/car-rental/reservations?filters=${encodeURIComponent(filters)}`
+    );
 
     const response = await hqApi.get(
       `/car-rental/reservations?filters=${encodeURIComponent(filters)}`
     );
 
     const hqReservations = response.data || [];
-
-    if (!hqReservations.length) {
-      return res.status(200).json({
-        message: "No reservations found",
-        data: [],
-      });
-    }
 
     res.status(200).json({
       message: "Reservations fetched successfully",
