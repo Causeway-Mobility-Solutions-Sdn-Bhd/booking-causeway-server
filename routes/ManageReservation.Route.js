@@ -5,10 +5,7 @@ const {
   updatePickupReturnLocation,
 } = require("../controllers/ManageReservation.controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
-const { getAllReservations } = require('../controllers/ManageReservation.controller')
-const { apiKeyAuth } = require('../middleware/apiKeyAuth.middlware')
-const { verifyToken } = require('../middleware/auth.middleware')
-
+const { verifyToken } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
@@ -18,7 +15,6 @@ router.post(
   apiKeyAuth,
   updatePickupReturnLocation
 );
-router.get('/get-all-reservation' , apiKeyAuth , verifyToken ,  getAllReservations )
-
+router.get("/get-all-reservation", apiKeyAuth, verifyToken, getAllReservations);
 
 module.exports = router;
