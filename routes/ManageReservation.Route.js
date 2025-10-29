@@ -6,7 +6,7 @@ const { apiKeyAuth } = require('../middleware/apiKeyAuth.middlware')
 
 const router = express.Router()
 
-router.get('/manage-reservations' , apiKeyAuth ,  getAllReservations )
+router.get('/get-all-reservation' , apiKeyAuth ,  getAllReservations )
 
 
 module.exports = router
