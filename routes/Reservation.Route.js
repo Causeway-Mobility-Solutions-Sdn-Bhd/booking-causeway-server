@@ -18,47 +18,47 @@ const {
 const router = express.Router();
 
 router.post(
-  "/reservations/dates",
+  "/dates",
   apiKeyAuth,
   reservationAttempt,
   validateDatesAndListVehicleClasses
 );
 router.get(
-  "/reservations/additional-charges",
+  "/additional-charges",
   apiKeyAuth,
   reservationAttempt,
   getAdditionalCharges
 );
 router.post(
-  "/reservations/additional-charges",
+  "/additional-charges",
   apiKeyAuth,
   reservationAttempt,
   checkAdditionalCharges
 );
 router.get(
-  "/reservations/reservation-attempts",
+  "/reservation-attempts",
   apiKeyAuth,
   reservationAttempt,
   getReservationAttempt
 );
 router.post(
-  "/reservations/conform-reservation",
+  "/conform-reservation",
   apiKeyAuth,
   reservationAttempt,
   confirmReservation
 );
 router.post(
-  "/reservations/process-payment",
+  "/process-payment",
   apiKeyAuth,
   reservationAttempt,
   processPayment
 );
 router.get(
-  "/reservations/get-reservation",
+  "/get-reservation",
   apiKeyAuth,
   reservationAttempt,
   getReservation
 );
-router.get("/reservations/get-reservation/:id", apiKeyAuth, getReservationById);
+router.get("/get-reservation/:id", apiKeyAuth, getReservationById);
 
 module.exports = router;

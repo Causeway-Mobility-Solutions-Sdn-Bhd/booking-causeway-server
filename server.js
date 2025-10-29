@@ -7,6 +7,7 @@ const connectDB = require("./db/config");
 
 const fleetsRoute = require("./routes/Fleets.Route");
 const reservationRoute = require("./routes/Reservation.Route");
+const manageReservationRoute = require("./routes/ManageReservation.Route");
 const CustomerRoute = require("./routes/Customer.Route");
 const FileRoute = require("./routes/File.Route");
 const AuthRoute = require("./routes/Auth.Route");
@@ -58,11 +59,13 @@ app.get("/api/version", (req, res) => {
 });
 
 app.use("/api/fleets", fleetsRoute);
-app.use("/api/car-rental", reservationRoute);
 app.use("/api/customers", CustomerRoute);
 app.use("/api/file", FileRoute);
 app.use("/api/auth", AuthRoute);
 app.use("/api/email", EmailRoute);
+app.use("/api/car-rental/reservations", reservationRoute);
+app.use("/api/car-rental", manageReservationRoute);
+
 
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err.message);
