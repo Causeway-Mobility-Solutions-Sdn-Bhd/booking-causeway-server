@@ -36,7 +36,12 @@ const getAllReservations = asyncHandler(async (req, res) => {
 
     const hqReservations = response?.data?.data || [];
 
-    const formattedReservations = hqReservations.map((r) => ({
+    // 🧹 Exclude "pending" reservations
+    const validReservations = hqReservations.filter(
+      (r) => r.status?.toLowerCase() !== "pending"
+    );
+
+    const formattedReservations = validReservations.map((r) => ({
       reservation_id: r.id,
       reservation_number: r.prefixed_id,
       status: r.status,
@@ -57,7 +62,8 @@ const getAllReservations = asyncHandler(async (req, res) => {
 
       vehicle_class_id: r.vehicle_class_id,
       vehicle_class_image: r.vehicle_class?.public_image_link,
-      vehicle_class: vehicleClasses.find(vc => vc.id === r.vehicle_class_id) || null,
+      vehicle_class:
+        vehicleClasses.find((vc) => vc.id === r.vehicle_class_id) || null,
 
       total_price: r.total_price,
       currency: r.currency,
@@ -78,5 +84,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
     });
   }
 });
+
 
 module.exports = { getAllReservations };
