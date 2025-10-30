@@ -54,10 +54,19 @@ const ReservationAttemptSchema = new mongoose.Schema(
       type: Number,
       required: false,
     },
-    isConformed : {
-      type:Boolean,
-      require:false
-    }
+    isConformed: {
+      type: Boolean,
+      require: false,
+    },
+    status: {
+      type: String,
+      enum: ["open", "completed", "cancelled", "pending"],
+      default: "pending",
+    },
+    cancellation_date: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
