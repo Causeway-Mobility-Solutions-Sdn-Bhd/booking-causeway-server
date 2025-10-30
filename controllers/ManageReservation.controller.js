@@ -40,7 +40,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
       reservation_id: { $in: reservationIds },
     }).select("_id reservation_id");
 
-    // Create a lookup map for quick access
     const attemptMap = new Map(attempts.map((a) => [a.reservation_id, a._id]));
     const formattedReservations = validReservations.map((r) => {
       const pickUpDate = new Date(r.pick_up_date);
