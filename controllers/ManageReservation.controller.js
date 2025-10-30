@@ -23,10 +23,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
       },
     ]);
 
-    console.log(
-      `/car-rental/reservations?filters=${encodeURIComponent(filters)}`
-    );
-
     const response = await hqApi.get(
       `/car-rental/reservations?filters=${encodeURIComponent(filters)}`
     );
@@ -39,41 +35,76 @@ const getAllReservations = asyncHandler(async (req, res) => {
     const validReservations = hqReservations.filter(
       (r) => r.status?.toLowerCase() !== "pending"
     );
+    const reservationIds = validReservations.map((r) => r.id);
+    const attempts = await ReservationAttempt.find({
+      reservation_id: { $in: reservationIds },
+    }).select("_id reservation_id");
 
-    const formattedReservations = validReservations.map((r) => ({
-      reservation_id: r.id,
-      reservation_number: r.prefixed_id,
-      status: r.status,
-      customer_id: r.customer_id,
-      customer_name: r.customer?.label,
-      customer_email: r.customer?.email,
-      customer_phone: r.customer?.phone_number,
+    // Create a lookup map for quick access
+    const attemptMap = new Map(attempts.map((a) => [a.reservation_id, a._id]));
+    const formattedReservations = validReservations.map((r) => {
+      const pickUpDate = new Date(r.pick_up_date);
+      const returnDate = new Date(r.return_date);
+      console.log(r);
 
-      pick_up_location: r.pick_up_location_label,
-      pick_up_address: r.pick_up_location?.address,
-      pick_up_date: r.pick_up_date,
-      pick_up_time: r.pick_up_time,
+      const durationDays = Math.ceil(
+        (returnDate - pickUpDate) / (1000 * 60 * 60 * 24)
+      );
 
-      return_location: r.return_location_label,
-      return_address: r.return_location?.address,
-      return_date: r.return_date,
-      return_time: r.return_time,
+      const options = { weekday: "short", day: "2-digit", month: "short" };
+      const formattedDate = pickUpDate.toLocaleDateString("en-GB", options);
 
-      vehicle_class_id: r.vehicle_class_id,
-      vehicle_class_image: r.vehicle_class?.public_image_link,
-      vehicle_class:
-        vehicleClasses.find((vc) => vc.id === r.vehicle_class_id) || null,
+      const time = pickUpDate.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        hour12: true,
+      });
 
-      total_price: r.total_price,
-      currency: r.currency,
+      return {
+        id: attemptMap.get(r.id) || null,
+        reservation_id: r.id,
+        reservation_number: r.prefixed_id,
+        status: r.status,
+        customer_id: r.customer_id,
+        customer_name: r.customer?.label,
+        customer_email: r.customer?.email,
+        customer_phone: r.customer?.phone_number,
 
-      created_at: r.created_at,
-      updated_at: r.updated_at,
-    }));
+        pick_up_location: r.pick_up_location_label,
+        pick_up_address: r.pick_up_location?.address,
+        pick_up_date: r.pick_up_date,
+        pick_up_time: r.pick_up_time,
 
+        return_location: r.return_location_label,
+        return_address: r.return_location?.address,
+        return_date: r.return_date,
+        return_time: r.return_time,
+
+        vehicle_class_id: r.vehicle_class_id,
+        vehicle_class_image: r.vehicle_class?.public_image_link,
+        vehicle_class:
+          vehicleClasses.find((vc) => vc.id === r.vehicle_class_id) || null,
+
+        total_price: r.total_price,
+        currency: r.currency,
+
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+
+        // ✅ New key for formatted duration
+        dateWithDays: `${formattedDate}, ${time} (${durationDays} day${
+          durationDays > 1 ? "s" : ""
+        })`,
+      };
+    });
+
+    const bookings = {
+      upcoming: formattedReservations.filter((b) => b.status === "open"),
+      completed: formattedReservations.filter((b) => b.status === "completed"),
+      cancelled: formattedReservations.filter((b) => b.status === "cancelled"),
+    };
     res.status(200).json({
       message: "Reservations fetched successfully",
-      data: formattedReservations,
+      data: bookings,
     });
   } catch (error) {
     console.error("Error fetching reservation details:", error.message);
