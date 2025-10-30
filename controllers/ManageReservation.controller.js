@@ -44,7 +44,6 @@ const getAllReservations = asyncHandler(async (req, res) => {
     const formattedReservations = validReservations.map((r) => {
       const pickUpDate = new Date(r.pick_up_date);
       const returnDate = new Date(r.return_date);
-      console.log(r);
 
       const durationDays = Math.ceil(
         (returnDate - pickUpDate) / (1000 * 60 * 60 * 24)
@@ -185,6 +184,9 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
     const availableIds = availableClassesFiltered.map(
       (cls) => cls.vehicle_class_id
     );
+    console.log(availableClassesFiltered);
+
+    console.log(availableIds);
 
     if (!availableIds.includes(Number(reservedVehicleClassId))) {
       return res.status(200).json({
@@ -221,6 +223,9 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
 
     if (locationChanged) {
       const vehicleClass = Number(reservedVehicleClassId);
+      console.log(vehicleClass);
+      console.log(pick_up_location);
+
       const locationUpdate = await hqApi.post(
         `car-rental/reservations/${reservation.reservation_id}/update`,
         {
@@ -229,6 +234,8 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
           vehicle_class_id: vehicleClass,
         }
       );
+      console.log(locationUpdate.data);
+
       if (locationUpdate.data.data.success) {
         updatedReservation = locationUpdate.data.data.reservation;
       }
@@ -269,5 +276,176 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
     res.status(500).json({ success: false, message });
   }
 });
+const cancelBooking = asyncHandler(async (req, res) => {
+  try {
+    console.log(req.body);
 
-module.exports = { getAllReservations, updatePickupReturnLocation };
+    const { id } = req.body;
+    console.log(id);
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "Reservation attempt ID is required" });
+    }
+
+    const attempt = await ReservationAttempt.findById(id);
+    if (!attempt) {
+      return res.status(404).json({ message: "Reservation attempt not found" });
+    }
+
+    const reservationId = attempt.reservation_id;
+    if (!reservationId) {
+      return res
+        .status(400)
+        .json({ message: "No reservation_id found for this attempt" });
+    }
+
+    const cancellationDate = new Date().toISOString();
+
+    const response = await hqApi.post(
+      `/car-rental/reservations/${reservationId}/cancelled`,
+      {},
+      {
+        params: { cancellation_date: cancellationDate },
+      }
+    );
+
+    attempt.status = "cancelled";
+    attempt.cancellation_date = cancellationDate;
+    await attempt.save();
+
+    res.status(200).json({
+      message: "Reservation cancelled successfully",
+      data: {
+        reservation_id: reservationId,
+        cancellation_date: cancellationDate,
+        hq_response: response?.data || {},
+      },
+    });
+  } catch (error) {
+    console.error("Error cancelling reservation:", error.message);
+    res.status(error.response?.status || 500).json({
+      message: error.response?.data?.message || "Failed to cancel reservation",
+    });
+  }
+});
+
+const findBooking = asyncHandler(async (req, res) => {
+  try {
+    const { reservation_id, email } = req.body;
+
+    if (!reservation_id) {
+      return res.status(400).json({ message: "Reservation ID is required" });
+    }
+
+    const filters = JSON.stringify([
+      {
+        type: "string",
+        column: "prefixed_id",
+        operator: "equals",
+        value: String(reservation_id),
+      },
+    ]);
+
+    // Call HQ API
+    const response = await hqApi.get(
+      `/car-rental/reservations?filters=${encodeURIComponent(filters)}`
+    );
+
+    const hqReservations = response?.data?.data || [];
+
+    if (!hqReservations.length) {
+      return res.status(404).json({ message: "No reservation found" });
+    }
+
+    // Email Same??
+    const reservation = hqReservations[0];
+    if (
+      email &&
+      reservation?.customer?.email?.toLowerCase() !== email.toLowerCase()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "Email does not match the booking record" });
+    }
+    const attempt = await ReservationAttempt.findOne({
+      reservation_id: reservation.id,
+    }).select("_id reservation_id status");
+    if (!attempt) {
+      return res.status(404).json({
+        message: "No reservation attempt found for this booking",
+      });
+    }
+    res.status(200).json({
+      message: "Reservation found successfully",
+      data: {
+        reservation,
+        attempt_id: attempt._id,
+        attempt_status: attempt.status,
+      },
+    });
+  } catch (error) {
+    console.error("Error finding reservation:", error.message);
+    res.status(error.response?.status || 500).json({
+      message:
+        error.response?.data?.message || "Failed to fetch reservation details",
+    });
+  }
+});
+
+// const reBook = asyncHandler(async (req, res) => {
+//   try {
+//     const { id } = req.body;
+
+//     if (!id) {
+//       return res
+//         .status(400)
+//         .json({ message: "Reservation attempt ID is required" });
+//     }
+
+//     const attempt = await ReservationAttempt.findById(id);
+//     if (!attempt) {
+//       return res.status(404).json({ message: "Reservation attempt not found" });
+//     }
+
+//     const reservationId = attempt.reservation_id;
+//     if (!reservationId) {
+//       return res
+//         .status(400)
+//         .json({ message: "No reservation_id found for this attempt" });
+//     }
+
+//     const response = await hqApi.post(
+//       `/car-rental/reservations/${reservationId}/open`,
+//       {}
+//     );
+//     console.log();
+
+//     attempt.status = "open";
+//     attempt.cancellation_date = null;
+//     await attempt.save();
+
+//     res.status(200).json({
+//       message: "Reservation reopened successfully",
+//       data: {
+//         reservation_id: reservationId,
+
+//         hq_response: response?.data || {},
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error reopening reservation:", error.message);
+//     res.status(error.response?.status || 500).json({
+//       message: error.response?.data?.message || "Failed to reopen reservation",
+//     });
+//   }
+// });
+
+module.exports = {
+  getAllReservations,
+  updatePickupReturnLocation,
+  cancelBooking,
+  findBooking,
+  // reBook,
+};
