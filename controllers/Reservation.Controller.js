@@ -327,7 +327,7 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
           .json({ message: "Reservation attempt not found" });
       }
       savedReservation.vehicle_class_id = reservationDetails?.vehicle_class_id;
-      savedReservation.step = 3;
+      if (!(savedReservation.step > 3)) savedReservation.step = 3;
       await savedReservation.save();
     }
 
