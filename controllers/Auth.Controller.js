@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const { generateSessionId } = require("../lib/idGenerator.js");
 const hqApi = require("../hq/hqApi");
+const ReservationAttempt = require("../models/ReservationAttempt");
 
 //@DESC Register
 //@Route POST /auth/register
@@ -81,7 +82,7 @@ const Reigster = asyncHandler(async (req, res) => {
 //@Access Private
 const Login = asyncHandler(async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password , ssid } = req.body;
 
     if (!email || !password) {
       return res
@@ -135,6 +136,14 @@ const Login = asyncHandler(async (req, res) => {
     await user.save();
 
     const name = `${user.firstName} ${user.lastName}`;
+    if(ssid){
+      const reservation = await ReservationAttempt.findById(ssid);
+      console.log("Reservation found for ssid:", reservation);
+      if(reservation){
+        reservation.customer_id = user.HqId;
+        await reservation.save();
+      }
+    }
 
     res
       .cookie("refreshToken", refreshToken, cookieOptions)
