@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const hqApi = require("../hq/hqApi");
 const NodeCache = require("node-cache");
 
-const cache = new NodeCache({ stdTTL: 86400 }); 
+const cache = new NodeCache({ stdTTL: 86400 });
 
 //@DESC Get All Vehicle Classes
 //@Route GET /api/fleets/vehicle-classes
@@ -51,7 +51,7 @@ const getAllVehicleTypes = asyncHandler(async (req, res) => {
       (type) => type.active === true
     );
 
-    cache.set(cacheKey, activeVehicleTypes); 
+    cache.set(cacheKey, activeVehicleTypes);
     console.log("Vehicle types cached");
 
     res.status(200).json(activeVehicleTypes);
@@ -77,7 +77,7 @@ const getAllLocation = asyncHandler(async (req, res) => {
     }
 
     const response = await hqApi.get("fleets/locations");
-    cache.set(cacheKey, response.data.fleets_locations); 
+    cache.set(cacheKey, response.data.fleets_locations);
     console.log("Locations cached");
 
     res.status(200).json(response.data.fleets_locations);
@@ -115,7 +115,7 @@ const getAllBrands = asyncHandler(async (req, res) => {
 
     const uniqueBrands = Array.from(brandMap.values());
 
-    cache.set(cacheKey, uniqueBrands); 
+    cache.set(cacheKey, uniqueBrands);
     console.log("Brands cached");
 
     res.status(200).json(uniqueBrands);
@@ -149,15 +149,12 @@ const getAllVehicles = asyncHandler(async (req, res) => {
           params: { brand_id: 1 },
         }),
         hqApi.get("fleets/vehicle-classes"),
-        hqApi.post(
-          "car-rental/reservations/dates",
-          {
-            ...dates,
-            pick_up_location: 1,
-            return_location: 1,
-            brand_id: 1,
-          },
-        ),
+        hqApi.post("car-rental/reservations/dates", {
+          ...dates,
+          pick_up_location: 1,
+          return_location: 1,
+          brand_id: 1,
+        }),
       ]);
 
     const vehicles = vehiclesResponse?.data?.data;
@@ -214,7 +211,7 @@ const getAllCurrencies = asyncHandler(async (req, res) => {
     }
 
     const response = await hqApi.get("currencies");
-    cache.set(cacheKey, response.data); 
+    cache.set(cacheKey, response.data);
     console.log("currencies cached");
 
     res.status(200).json(response.data);
@@ -366,5 +363,5 @@ module.exports = {
   getAllLocation,
   getAllBrands,
   getAllVehicles,
-  getAllCurrencies
+  getAllCurrencies,
 };

@@ -67,6 +67,10 @@ const ReservationAttemptSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    rebookedAt: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

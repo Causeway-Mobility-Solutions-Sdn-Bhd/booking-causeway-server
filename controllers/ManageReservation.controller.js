@@ -2,6 +2,9 @@ const asyncHandler = require("express-async-handler");
 const Usermodel = require("../models/User.js");
 const hqApi = require("../hq/hqApi");
 const ReservationAttempt = require("../models/ReservationAttempt");
+const { generateSessionId } = require("../lib/idGenerator.js");
+const getRebookedDates = require("../lib/getRebookedDates.js");
+const cookieOptions = require("../lib/cookieOption.js");
 
 // @DESC Get All Reservations Related To User
 // @Route GET /car-rental/manage-reservations/get-all-reservation
@@ -395,58 +398,73 @@ const findBooking = asyncHandler(async (req, res) => {
   }
 });
 
-// const reBook = asyncHandler(async (req, res) => {
-//   try {
-//     const { id } = req.body;
+const rebookReservation = asyncHandler(async (req, res) => {
+  const { id } = req.body;
 
-//     if (!id) {
-//       return res
-//         .status(400)
-//         .json({ message: "Reservation attempt ID is required" });
-//     }
+  if (!id) {
+    return res.status(400).json({ message: "Reservation ID is required." });
+  }
 
-//     const attempt = await ReservationAttempt.findById(id);
-//     if (!attempt) {
-//       return res.status(404).json({ message: "Reservation attempt not found" });
-//     }
+  const existingReservation = await ReservationAttempt.findById(id);
+  if (!existingReservation) {
+    return res.status(404).json({ message: "Reservation not found." });
+  }
 
-//     const reservationId = attempt.reservation_id;
-//     if (!reservationId) {
-//       return res
-//         .status(400)
-//         .json({ message: "No reservation_id found for this attempt" });
-//     }
+  if (existingReservation.rebookedAt) {
+    const rebooked = await ReservationAttempt.findById(
+      existingReservation.rebookedAt
+    );
 
-//     const response = await hqApi.post(
-//       `/car-rental/reservations/${reservationId}/open`,
-//       {}
-//     );
-//     console.log();
+    if (rebooked) {
+      if (rebooked.isConformed === false) {
+        res.cookie("ssid", rebooked._id.toString(), cookieOptions);
+        return res.status(200).json({
+          message: "Rebook attempt already exists and is not confirmed yet.",
+          reservation: rebooked,
+        });
+      }
+    }
+  }
 
-//     attempt.status = "open";
-//     attempt.cancellation_date = null;
-//     await attempt.save();
+  const { pickupDate, returnDate } = getRebookedDates(
+    existingReservation.pick_up_date,
+    existingReservation.return_date
+  );
+  const newReservationData = {
+    _id: generateSessionId(),
+    brand_id: existingReservation.brand_id,
+    pick_up_date: pickupDate,
+    pick_up_time: existingReservation.pick_up_time,
+    return_date: returnDate,
+    return_time: existingReservation.return_time,
+    pick_up_location: existingReservation.pick_up_location,
+    return_location: existingReservation.return_location,
+    selected_additional_charges:
+      existingReservation.selected_additional_charges,
+    customer_id: existingReservation.customer_id,
+    vehicle_class_id: existingReservation.vehicle_class_id,
+    step: 2,
+    isConformed: false,
+    status: "pending",
+  };
 
-//     res.status(200).json({
-//       message: "Reservation reopened successfully",
-//       data: {
-//         reservation_id: reservationId,
+  const newReservation = await ReservationAttempt.create(newReservationData);
 
-//         hq_response: response?.data || {},
-//       },
-//     });
-//   } catch (error) {
-//     console.error("Error reopening reservation:", error.message);
-//     res.status(error.response?.status || 500).json({
-//       message: error.response?.data?.message || "Failed to reopen reservation",
-//     });
-//   }
-// });
+  existingReservation.rebookedAt = newReservation._id;
+  await existingReservation.save();
+
+  res.cookie("ssid", newReservation._id.toString(), cookieOptions);
+
+  res.status(201).json({
+    message: "Rebooked successfully",
+    reservation: newReservation,
+  });
+});
 
 module.exports = {
   getAllReservations,
   updatePickupReturnLocation,
   cancelBooking,
   findBooking,
-  // reBook,
+  rebookReservation,
 };
