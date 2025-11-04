@@ -6,6 +6,7 @@ const {
   cancelBooking,
   reBook,
   findBooking,
+  rebookReservation,
 } = require("../controllers/ManageReservation.controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
 const { verifyToken } = require("../middleware/auth.middleware");
@@ -20,5 +21,6 @@ router.post(
 );
 router.post("/cancel-reservation", apiKeyAuth, cancelBooking);
 router.post("/find-booking", apiKeyAuth, findBooking);
-// router.post("/rebook", apiKeyAuth, reBook);
+
+router.post("/rebook", apiKeyAuth, rebookReservation);
 module.exports = router;
