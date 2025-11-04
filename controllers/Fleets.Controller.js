@@ -223,6 +223,58 @@ const getAllCurrencies = asyncHandler(async (req, res) => {
   }
 });
 
+//@DESC Get favorite vehicles
+//@ROUTE GET /api/fleets/favorite-vehicles?ids=7,10,12
+//@ACCESS Private
+const getFavoriteVehicles = asyncHandler(async (req, res) => {
+  try {
+    const favoriteIds = req.query.ids
+      ? req.query.ids.split(",").map((id) => Number(id))
+      : [];
+
+    if (!favoriteIds.length) {
+      return res
+        .status(400)
+        .json({ message: "No favorite vehicle IDs provided" });
+    }
+
+    const response = await hqApi.get("fleets/vehicle-classes");
+    const vehicles = response?.data?.fleets_vehicle_classes || [];
+
+    const filtered = vehicles?.filter((v) => favoriteIds.includes(v.id));
+
+    const formatted = filtered?.map((v) => ({
+      id: v.id,
+      name: v.name,
+      brand: v.brand?.name,
+      image:
+        v.public_image_link ||
+        v.images?.[0]?.public_link ||
+        "/placeholder-car.png",
+      features: v.features?.map((f) => ({
+        id: f.id,
+        label: f.label,
+        icon: f.icon,
+        image: f.images?.[0]?.public_link,
+      })),
+      price: v.active_rates?.[0]?.daily_rate || 0,
+      recommended: v.recommended,
+      type: v.vehicle_type?.label,
+    }));
+
+    res.status(200).json({
+      count: formatted.length,
+      vehicles: formatted,
+    });
+  } catch (error) {
+    console.error("Error fetching favorite vehicles:", error);
+    res.status(error.response?.status || 500).json({
+      message:
+        error.response?.data?.message || "Failed to fetch favorite vehicles",
+    });
+  }
+});
+
 const getOptimizedDates = () => {
   const now = Date.now();
   const tomorrow = new Date(now + 24 * 60 * 60 * 1000);
@@ -364,4 +416,5 @@ module.exports = {
   getAllBrands,
   getAllVehicles,
   getAllCurrencies,
+  getFavoriteVehicles,
 };
