@@ -410,10 +410,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       vehicle_class_id,
       additional_charges,
       isFinal,
+      coupon_code
     } = req.query;
     const params = new URLSearchParams();
 
     const reservationAttemptId = req.reservationAttemptId;
+    console.log(coupon_code)
 
     params.append("pick_up_date", pick_up_date);
     params.append("pick_up_time", pick_up_time);
@@ -423,6 +425,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     params.append("return_location", return_location);
     params.append("brand_id", brand_id);
     params.append("vehicle_class_id", vehicle_class_id);
+
+    if(coupon_code){
+      params.append("coupon_code", coupon_code);
+    }
+
+    console.log(params)
 
     const normalizedCharges = Array.isArray(additional_charges)
       ? additional_charges
@@ -438,6 +446,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       `car-rental/reservations/additional-charges?${params.toString()}`,
       {}
     );
+    console.log(response?.data?.data);
 
     const { selected_vehicle_class, selected_additional_charges, total } =
       response?.data?.data || {};
