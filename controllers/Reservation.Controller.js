@@ -448,7 +448,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     );
     console.log(response?.data?.data);
 
-    const { selected_vehicle_class, selected_additional_charges, total } =
+    const { selected_vehicle_class, selected_additional_charges, total , applicable_discounts } =
       response?.data?.data || {};
 
     let savedReservation = null;
@@ -516,6 +516,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       selected_vehicle,
       reservation: savedReservation,
       selected_additional_charges_arr: normalizedCharges,
+      discount : applicable_discounts
     });
   } catch (error) {
     console.log("Error fetch:", error);
