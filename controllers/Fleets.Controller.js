@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const hqApi = require("../hq/hqApi");
 const NodeCache = require("node-cache");
 
-const cache = new NodeCache({ stdTTL: 86400 }); 
+const cache = new NodeCache({ stdTTL: 86400 });
 
 //@DESC Get All Vehicle Classes
 //@Route GET /api/fleets/vehicle-classes
@@ -51,7 +51,7 @@ const getAllVehicleTypes = asyncHandler(async (req, res) => {
       (type) => type.active === true
     );
 
-    cache.set(cacheKey, activeVehicleTypes); 
+    cache.set(cacheKey, activeVehicleTypes);
     console.log("Vehicle types cached");
 
     res.status(200).json(activeVehicleTypes);
@@ -77,7 +77,7 @@ const getAllLocation = asyncHandler(async (req, res) => {
     }
 
     const response = await hqApi.get("fleets/locations");
-    cache.set(cacheKey, response.data.fleets_locations); 
+    cache.set(cacheKey, response.data.fleets_locations);
     console.log("Locations cached");
 
     res.status(200).json(response.data.fleets_locations);
@@ -115,7 +115,7 @@ const getAllBrands = asyncHandler(async (req, res) => {
 
     const uniqueBrands = Array.from(brandMap.values());
 
-    cache.set(cacheKey, uniqueBrands); 
+    cache.set(cacheKey, uniqueBrands);
     console.log("Brands cached");
 
     res.status(200).json(uniqueBrands);
@@ -149,15 +149,12 @@ const getAllVehicles = asyncHandler(async (req, res) => {
           params: { brand_id: 1 },
         }),
         hqApi.get("fleets/vehicle-classes"),
-        hqApi.post(
-          "car-rental/reservations/dates",
-          {
-            ...dates,
-            pick_up_location: 1,
-            return_location: 1,
-            brand_id: 1,
-          },
-        ),
+        hqApi.post("car-rental/reservations/dates", {
+          ...dates,
+          pick_up_location: 1,
+          return_location: 1,
+          brand_id: 1,
+        }),
       ]);
 
     const vehicles = vehiclesResponse?.data?.data;
@@ -214,7 +211,7 @@ const getAllCurrencies = asyncHandler(async (req, res) => {
     }
 
     const response = await hqApi.get("currencies");
-    cache.set(cacheKey, response.data); 
+    cache.set(cacheKey, response.data);
     console.log("currencies cached");
 
     res.status(200).json(response.data);
@@ -222,6 +219,58 @@ const getAllCurrencies = asyncHandler(async (req, res) => {
     console.log("Error fetching currencies :", error);
     res.status(error.response?.status || 500).json({
       message: error.response?.data?.message || "Failed to fetch currencies",
+    });
+  }
+});
+
+//@DESC Get favorite vehicles
+//@ROUTE GET /api/fleets/favorite-vehicles?ids=7,10,12
+//@ACCESS Private
+const getFavoriteVehicles = asyncHandler(async (req, res) => {
+  try {
+    const favoriteIds = req.query.ids
+      ? req.query.ids.split(",").map((id) => Number(id))
+      : [];
+
+    if (!favoriteIds.length) {
+      return res
+        .status(400)
+        .json({ message: "No favorite vehicle IDs provided" });
+    }
+
+    const response = await hqApi.get("fleets/vehicle-classes");
+    const vehicles = response?.data?.fleets_vehicle_classes || [];
+
+    const filtered = vehicles?.filter((v) => favoriteIds.includes(v.id));
+
+    const formatted = filtered?.map((v) => ({
+      id: v.id,
+      name: v.name,
+      brand: v.brand?.name,
+      image:
+        v.public_image_link ||
+        v.images?.[0]?.public_link ||
+        "/placeholder-car.png",
+      features: v.features?.map((f) => ({
+        id: f.id,
+        label: f.label,
+        icon: f.icon,
+        image: f.images?.[0]?.public_link,
+      })),
+      price: v.active_rates?.[0]?.daily_rate || 0,
+      recommended: v.recommended,
+      type: v.vehicle_type?.label,
+    }));
+
+    res.status(200).json({
+      count: formatted.length,
+      vehicles: formatted,
+    });
+  } catch (error) {
+    console.error("Error fetching favorite vehicles:", error);
+    res.status(error.response?.status || 500).json({
+      message:
+        error.response?.data?.message || "Failed to fetch favorite vehicles",
     });
   }
 });
@@ -366,5 +415,6 @@ module.exports = {
   getAllLocation,
   getAllBrands,
   getAllVehicles,
-  getAllCurrencies
+  getAllCurrencies,
+  getFavoriteVehicles,
 };

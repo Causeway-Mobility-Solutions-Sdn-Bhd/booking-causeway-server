@@ -410,10 +410,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       vehicle_class_id,
       additional_charges,
       isFinal,
+      coupon_code
     } = req.query;
     const params = new URLSearchParams();
 
     const reservationAttemptId = req.reservationAttemptId;
+    console.log(coupon_code)
 
     params.append("pick_up_date", pick_up_date);
     params.append("pick_up_time", pick_up_time);
@@ -423,6 +425,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     params.append("return_location", return_location);
     params.append("brand_id", brand_id);
     params.append("vehicle_class_id", vehicle_class_id);
+
+    if(coupon_code){
+      params.append("coupon_code", coupon_code);
+    }
+
+    console.log(params)
 
     const normalizedCharges = Array.isArray(additional_charges)
       ? additional_charges
@@ -438,8 +446,9 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       `car-rental/reservations/additional-charges?${params.toString()}`,
       {}
     );
+    console.log(response?.data?.data);
 
-    const { selected_vehicle_class, selected_additional_charges, total } =
+    const { selected_vehicle_class, selected_additional_charges, total , applicable_discounts } =
       response?.data?.data || {};
 
     let savedReservation = null;
@@ -507,6 +516,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       selected_vehicle,
       reservation: savedReservation,
       selected_additional_charges_arr: normalizedCharges,
+      discount : applicable_discounts
     });
   } catch (error) {
     console.log("Error fetch:", error);
@@ -542,9 +552,10 @@ const confirmReservation = asyncHandler(async (req, res) => {
       skip_confirmation_email: true,
     };
 
+    console.log("Formatted Reservation:", formattedReservation);
+
     console.log({
       coupon_code: couponCode,
-      // ...(couponCode && { add_discount: 1 }),
       ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
     });
 
@@ -554,25 +565,20 @@ const confirmReservation = asyncHandler(async (req, res) => {
         `/car-rental/reservations/${reservation?.reservation_id}/update`,
         {
           coupon_code: couponCode,
-          // ...(couponCode && { add_discount: 1 }),
           ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
         }
       );
-      console.log("updat");
     } else {
       response = await hqApi.post(
         "car-rental/reservations/confirm",
         formattedReservation
       );
-      console.log("crate");
     }
 
     if (response?.status == 200) {
-      console.log("update");
       const id = response?.data?.data?.reservation?.id;
       reservation.reservation_id = id;
       reservation.isConformed = true;
-      console.log(reservation);
       await reservation.save();
       const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }
@@ -655,7 +661,7 @@ const getReservationById = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ ...response?.data, rental_agreement: responseAgrrement?.data });
+      .json({ ...response?.data, rental_agreement: responseAgrrement?.data , reservation_attempt: reservation });
   } catch (error) {
     console.log("Error fetching reservation:", error);
     res.status(error.response?.status || 500).json({

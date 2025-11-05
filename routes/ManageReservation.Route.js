@@ -6,6 +6,8 @@ const {
   cancelBooking,
   reBook,
   findBooking,
+  rebookReservation,
+  updateAddons,
 } = require("../controllers/ManageReservation.controller");
 const { apiKeyAuth } = require("../middleware/apiKeyAuth.middlware");
 const { verifyToken } = require("../middleware/auth.middleware");
@@ -18,7 +20,13 @@ router.post(
   apiKeyAuth,
   updatePickupReturnLocation
 );
+router.post(
+  "/update-reservation-addons",
+  apiKeyAuth,
+  updateAddons
+);
 router.post("/cancel-reservation", apiKeyAuth, cancelBooking);
 router.post("/find-booking", apiKeyAuth, findBooking);
-// router.post("/rebook", apiKeyAuth, reBook);
+
+router.post("/rebook", apiKeyAuth, rebookReservation);
 module.exports = router;
