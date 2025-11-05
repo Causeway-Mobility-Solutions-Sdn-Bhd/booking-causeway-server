@@ -661,7 +661,7 @@ const getReservationById = asyncHandler(async (req, res) => {
 
     res
       .status(200)
-      .json({ ...response?.data, rental_agreement: responseAgrrement?.data });
+      .json({ ...response?.data, rental_agreement: responseAgrrement?.data , reservation_attempt: reservation });
   } catch (error) {
     console.log("Error fetching reservation:", error);
     res.status(error.response?.status || 500).json({

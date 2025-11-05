@@ -280,6 +280,48 @@ const updatePickupReturnLocation = asyncHandler(async (req, res) => {
     res.status(500).json({ success: false, message });
   }
 });
+
+//@DESC Change Additional Charges of a Reservation
+//@ROUTE POST /car-rental/reservations/:id/update
+//@ACCESS Private
+const updateAddons = asyncHandler(async (req, res) => {
+  try {
+    const { reservation_id, additional_charges } = req.body;
+
+    if (!reservation_id) {
+      return res.status(400).json({ message: "Reservation ID is required" });
+    }
+
+    if (!Array.isArray(additional_charges) || additional_charges.length === 0) {
+      return res.status(400).json({ message: "At least one additional charge is required" });
+    }
+
+    const payload = new URLSearchParams();
+
+    additional_charges.forEach((charge) => {
+      payload.append("additional_charges[]", charge);
+    });
+
+    const response = await hqApi.post(
+      `/car-rental/reservations/${reservation_id}/update`,
+      payload
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Additional charges updated successfully",
+      data: response?.data?.data || response?.data,
+    });
+  } catch (error) {
+    console.error("Error updating additional charges:", error);
+    res.status(error.response?.status || 500).json({
+      success: false,
+      message: error.response?.data?.message || "Failed to update additional charges",
+    });
+  }
+});
+
+
 const cancelBooking = asyncHandler(async (req, res) => {
   try {
     console.log(req.body);
@@ -467,4 +509,5 @@ module.exports = {
   cancelBooking,
   findBooking,
   rebookReservation,
+  updateAddons
 };
