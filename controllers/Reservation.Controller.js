@@ -552,9 +552,10 @@ const confirmReservation = asyncHandler(async (req, res) => {
       skip_confirmation_email: true,
     };
 
+    console.log("Formatted Reservation:", formattedReservation);
+
     console.log({
       coupon_code: couponCode,
-      // ...(couponCode && { add_discount: 1 }),
       ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
     });
 
@@ -564,25 +565,20 @@ const confirmReservation = asyncHandler(async (req, res) => {
         `/car-rental/reservations/${reservation?.reservation_id}/update`,
         {
           coupon_code: couponCode,
-          // ...(couponCode && { add_discount: 1 }),
           ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
         }
       );
-      console.log("updat");
     } else {
       response = await hqApi.post(
         "car-rental/reservations/confirm",
         formattedReservation
       );
-      console.log("crate");
     }
 
     if (response?.status == 200) {
-      console.log("update");
       const id = response?.data?.data?.reservation?.id;
       reservation.reservation_id = id;
       reservation.isConformed = true;
-      console.log(reservation);
       await reservation.save();
       const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }
