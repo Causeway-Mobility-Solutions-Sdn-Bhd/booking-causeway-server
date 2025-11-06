@@ -251,15 +251,19 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
         item.features.some((f) => f.id === transmission)
       );
     }
-    console.log(isCreate);
 
     if (isCreate) {
       res.cookie("ssid", savedReservation._id.toString(), cookieOptions);
     }
 
+    const selectedVehicle = enrichedClasses.filter((item) =>
+        item?.id === Number(savedReservation?.vehicle_class_id)
+    );
+
     res.status(200).json({
       reservation: savedReservation,
       VehicleClasses: enrichedClasses,
+      selectedVehicle: selectedVehicle.length > 0 ? selectedVehicle[0] : null,
     });
   } catch (error) {
     console.log("Error validating dates and fetching vehicle classes:", error);
