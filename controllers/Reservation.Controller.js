@@ -256,8 +256,8 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
       res.cookie("ssid", savedReservation._id.toString(), cookieOptions);
     }
 
-    const selectedVehicle = enrichedClasses.filter((item) =>
-        item?.id === Number(savedReservation?.vehicle_class_id)
+    const selectedVehicle = enrichedClasses.filter(
+      (item) => item?.id === Number(savedReservation?.vehicle_class_id)
     );
 
     res.status(200).json({
@@ -414,12 +414,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       vehicle_class_id,
       additional_charges,
       isFinal,
-      coupon_code
+      coupon_code,
     } = req.query;
     const params = new URLSearchParams();
 
     const reservationAttemptId = req.reservationAttemptId;
-    console.log(coupon_code)
+    console.log(coupon_code);
 
     params.append("pick_up_date", pick_up_date);
     params.append("pick_up_time", pick_up_time);
@@ -430,11 +430,11 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     params.append("brand_id", brand_id);
     params.append("vehicle_class_id", vehicle_class_id);
 
-    if(coupon_code){
+    if (coupon_code) {
       params.append("coupon_code", coupon_code);
     }
 
-    console.log(params)
+    console.log(params);
 
     const normalizedCharges = Array.isArray(additional_charges)
       ? additional_charges
@@ -452,8 +452,12 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     );
     console.log(response?.data?.data);
 
-    const { selected_vehicle_class, selected_additional_charges, total , applicable_discounts } =
-      response?.data?.data || {};
+    const {
+      selected_vehicle_class,
+      selected_additional_charges,
+      total,
+      applicable_discounts,
+    } = response?.data?.data || {};
 
     let savedReservation = null;
     if (reservationAttemptId) {
@@ -520,7 +524,7 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       selected_vehicle,
       reservation: savedReservation,
       selected_additional_charges_arr: normalizedCharges,
-      discount : applicable_discounts
+      discount: applicable_discounts,
     });
   } catch (error) {
     console.log("Error fetch:", error);
@@ -663,9 +667,11 @@ const getReservationById = asyncHandler(async (req, res) => {
       `/car-rental/reservations/${id}/rental-agreement`
     );
 
-    res
-      .status(200)
-      .json({ ...response?.data, rental_agreement: responseAgrrement?.data , reservation_attempt: reservation });
+    res.status(200).json({
+      ...response?.data,
+      rental_agreement: responseAgrrement?.data,
+      reservation_attempt: reservation,
+    });
   } catch (error) {
     console.log("Error fetching reservation:", error);
     res.status(error.response?.status || 500).json({
@@ -680,16 +686,59 @@ const getReservationAttempt = asyncHandler(async (req, res) => {
   const reservationAttemptId = req.reservationAttemptId;
 
   try {
-    const reservation = await ReservationAttempt.findById(reservationAttemptId);
+    if (!reservationAttemptId) {
+      return res
+        .status(400)
+        .json({ message: "Reservation attempt ID is required" });
+    }
 
+    const reservation = await ReservationAttempt.findById(reservationAttemptId);
     if (!reservation) {
       return res.status(404).json({ message: "Reservation attempt not found" });
     }
 
-    return res.status(200).json(reservation);
+    let vehicleDetails = null;
+    if (reservation.vehicle_class_id) {
+      const id = Number(reservation.vehicle_class_id);
+      const { data } = await hqApi.get(
+        `fleets/vehicle-classes/${id}`
+      );
+      const resData = data?.fleets_vehicle_class;
+
+      if (resData) {
+        vehicleDetails = {
+          id: resData.id,
+          name: resData.name,
+          brand: {
+            id: resData.brand?.id,
+            name: resData.brand?.name,
+            public_links: {
+              reservations: resData.brand?.public_reservations_link_first_step,
+              packages: resData.brand?.public_packages_link_first_step,
+            },
+          },
+          image: resData.images?.[0]?.public_link || resData.public_image_link,
+          features:resData.features,
+          daily_rate: parseFloat(resData.active_rates?.[0]?.daily_rate || 0),
+          available_on_website: resData.available_on_website,
+          active: resData.active,
+          created_at: resData.created_at,
+          updated_at: resData.updated_at,
+          public_image_link: resData.public_image_link,
+        };
+      }
+    }
+
+    return res.status(200).json({
+      ...reservation.toObject(),
+      selectedVehicle: vehicleDetails,
+    });
   } catch (error) {
-    console.log("Error fetching reservation attempt:", error.message);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Error fetching reservation attempt:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching reservation attempt",
+    });
   }
 });
 
