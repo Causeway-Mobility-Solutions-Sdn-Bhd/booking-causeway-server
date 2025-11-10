@@ -65,6 +65,9 @@ app.use("/api/auth", AuthRoute);
 app.use("/api/email", EmailRoute);
 app.use("/api/car-rental/reservations", reservationRoute);
 app.use("/api/car-rental/manage-reservations", manageReservationRoute);
+app.get("/api/version", (req, res) => {
+    res.json(require("./version.json"));
+});
 
 
 app.use((err, req, res, next) => {
