@@ -32,8 +32,6 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     customer_id,
   } = req.body;
 
-  console.log(req?.body);
-
   const reservationAttemptId = req.reservationAttemptId;
 
   // ✅ Step 1: Validate required input
@@ -70,8 +68,6 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
     let cachedData = cache.get(cacheKey);
 
     if (!cachedData) {
-      console.log("Fetching vehicles + classTypeArray from API...");
-
       const vehicleResponse = await hqApi.get("fleets/vehicles/");
       const allVehicles = vehicleResponse?.data?.data || [];
 
@@ -98,8 +94,6 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
 
       cachedData = { allVehicles, classTypeArray };
       cache.set(cacheKey, cachedData);
-    } else {
-      console.log("Serving vehicles + classTypeArray from cache");
     }
 
     const { classTypeArray } = cachedData;
@@ -128,7 +122,6 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
 
     try {
       if (isCreate) {
-        console.log(reservation);
         savedReservation = await ReservationAttempt.create(reservation);
       } else {
         if (reservationAttemptId) {
@@ -379,7 +372,13 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
       (a, b) => (a.category.order || 0) - (b.category.order || 0)
     );
 
+    console.log("savedReservation:", savedReservation);
+
     if (savedReservation.reservation_id) {
+      console.log(
+        "savedReservation.reservation_id",
+        savedReservation.reservation_id
+      );
       try {
         const reservationUpdate = await hqApi.post(
           `car-rental/reservations/${savedReservation.reservation_id}/update`,
@@ -390,18 +389,19 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
             return_time,
             pick_up_location,
             return_location,
-            brand_id,
-            vehicle_class_id,
+            // brand_id,
+            // vehicle_class_id,
           }
         );
-        console.log("Reservation updated :", reservationUpdate.data);
+        console.log("Reservation updated vehicle:", reservationUpdate?.data);
       } catch (error) {
         console.error("Error updating reservation:", error.message || error);
-        return {
+        const statusCode = error?.response?.status || 500;
+        return res.status(statusCode).json({
           success: false,
           message: "Failed to update reservation",
           error: error.response?.data || error.message,
-        };
+        });
       }
     }
 
@@ -445,7 +445,6 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     const params = new URLSearchParams();
 
     const reservationAttemptId = req.reservationAttemptId;
-    console.log(coupon_code);
 
     params.append("pick_up_date", pick_up_date);
     params.append("pick_up_time", pick_up_time);
@@ -459,8 +458,6 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     if (coupon_code) {
       params.append("coupon_code", coupon_code);
     }
-
-    console.log(params);
 
     const normalizedCharges = Array.isArray(additional_charges)
       ? additional_charges
@@ -476,7 +473,6 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       `car-rental/reservations/additional-charges?${params.toString()}`,
       {}
     );
-    console.log(response?.data?.data);
 
     const {
       selected_vehicle_class,
@@ -497,7 +493,6 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       }
 
       if (isFinal === "true") {
-        console.log("updted");
         savedReservation.selected_additional_charges = normalizedCharges;
         savedReservation.step = 4;
       }
@@ -549,21 +544,28 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
       try {
         const payload = new URLSearchParams();
 
-        additional_charges.forEach((charge) => {
+        const normalizedCharges = Array.isArray(additional_charges)
+          ? additional_charges
+          : typeof additional_charges === "string"
+          ? [additional_charges]
+          : [];
+
+        normalizedCharges.forEach((charge) => {
           payload.append("additional_charges[]", charge);
         });
         const reservationUpdate = await hqApi.post(
           `car-rental/reservations/${savedReservation.reservation_id}/update`,
           payload
         );
-        console.log("Reservation updated :", reservationUpdate.data);
+        console.log("Reservation updated additional:");
       } catch (error) {
         console.error("Error updating reservation:", error.message || error);
-        return {
+        const statusCode = error?.response?.status || 500;
+        return res.status(statusCode).json({
           success: false,
           message: "Failed to update reservation",
           error: error.response?.data || error.message,
-        };
+        });
       }
     }
 
@@ -589,8 +591,6 @@ const confirmReservation = asyncHandler(async (req, res) => {
   try {
     const reservationAttemptId = req.reservationAttemptId;
     const { couponCode, isRemove } = req.body;
-    console.log(isRemove, "remove");
-    console.log(reservationAttemptId);
 
     const reservation = await ReservationAttempt.findById(reservationAttemptId);
 
@@ -607,13 +607,6 @@ const confirmReservation = asyncHandler(async (req, res) => {
       customer_id: reservation?.customer_id,
       skip_confirmation_email: true,
     };
-
-    console.log("Formatted Reservation:", formattedReservation);
-
-    console.log({
-      coupon_code: couponCode,
-      ...(isRemove ? { remove_discount: 1 } : { add_discount: 1 }),
-    });
 
     let response;
     if (reservation.reservation_id) {
