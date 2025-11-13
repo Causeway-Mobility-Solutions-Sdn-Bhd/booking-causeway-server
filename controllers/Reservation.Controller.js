@@ -145,6 +145,27 @@ const validateDatesAndListVehicleClasses = asyncHandler(async (req, res) => {
         .json({ message: "Failed to process reservation attempt" });
     }
 
+    if (
+      savedReservation?.vehicle_class_id &&
+      savedReservation?.reservation_id
+    ) {
+      const selectedId = Number(savedReservation?.vehicle_class_id);
+
+      const classIds =
+        applicable_classes?.map((ac) => ac?.vehicle_class_id) || [];
+
+      console.log("Selected:", selectedId);
+      console.log("Class IDs:", classIds);
+
+      const isPresent = classIds.includes(selectedId);
+      if (!isPresent) {
+        return res.status(500).json({
+          message:
+            "The selected vehicle is not available for the chosen date and location. Please try a different date or location.",
+        });
+      }
+    }
+
     let enrichedClasses = applicable_classes
       .filter((item) => item?.availability?.quantity > 0)
       .map((item) => {
@@ -380,6 +401,16 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
         savedReservation.reservation_id
       );
       try {
+        console.log({
+          pick_up_date,
+          pick_up_time,
+          return_date,
+          return_time,
+          pick_up_location,
+          return_location,
+          brand_id: Number(brand_id),
+          vehicle_class_id: Number(vehicle_class_id),
+        });
         const reservationUpdate = await hqApi.post(
           `car-rental/reservations/${savedReservation.reservation_id}/update`,
           {
@@ -387,10 +418,10 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
             pick_up_time,
             return_date,
             return_time,
-            pick_up_location,
-            return_location,
-            // brand_id,
-            // vehicle_class_id,
+            // pick_up_location,
+            // return_location,
+            // brand_id: Number(brand_id),
+            // vehicle_class_id: Number(vehicle_class_id),
           }
         );
         console.log("Reservation updated vehicle:", reservationUpdate?.data);
