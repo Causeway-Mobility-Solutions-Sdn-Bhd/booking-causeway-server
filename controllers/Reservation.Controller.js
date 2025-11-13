@@ -379,6 +379,32 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
       (a, b) => (a.category.order || 0) - (b.category.order || 0)
     );
 
+    if (savedReservation.reservation_id) {
+      try {
+        const reservationUpdate = await hqApi.post(
+          `car-rental/reservations/${savedReservation.reservation_id}/update`,
+          {
+            pick_up_date,
+            pick_up_time,
+            return_date,
+            return_time,
+            pick_up_location,
+            return_location,
+            brand_id,
+            vehicle_class_id,
+          }
+        );
+        console.log("Reservation updated :", reservationUpdate.data);
+      } catch (error) {
+        console.error("Error updating reservation:", error.message || error);
+        return {
+          success: false,
+          message: "Failed to update reservation",
+          error: error.response?.data || error.message,
+        };
+      }
+    }
+
     // Step 4: Return response
     return res.status(200).json({
       reservation: savedReservation,
@@ -518,6 +544,28 @@ const checkAdditionalCharges = asyncHandler(async (req, res) => {
     const groupedAdditionalCharges = Array.from(categoryMap.values()).sort(
       (a, b) => (a.category.order || 0) - (b.category.order || 0)
     );
+
+    if (savedReservation.reservation_id) {
+      try {
+        const payload = new URLSearchParams();
+
+        additional_charges.forEach((charge) => {
+          payload.append("additional_charges[]", charge);
+        });
+        const reservationUpdate = await hqApi.post(
+          `car-rental/reservations/${savedReservation.reservation_id}/update`,
+          payload
+        );
+        console.log("Reservation updated :", reservationUpdate.data);
+      } catch (error) {
+        console.error("Error updating reservation:", error.message || error);
+        return {
+          success: false,
+          message: "Failed to update reservation",
+          error: error.response?.data || error.message,
+        };
+      }
+    }
 
     res.status(200).json({
       selected_additional_charges: groupedAdditionalCharges,
@@ -700,9 +748,7 @@ const getReservationAttempt = asyncHandler(async (req, res) => {
     let vehicleDetails = null;
     if (reservation.vehicle_class_id) {
       const id = Number(reservation.vehicle_class_id);
-      const { data } = await hqApi.get(
-        `fleets/vehicle-classes/${id}`
-      );
+      const { data } = await hqApi.get(`fleets/vehicle-classes/${id}`);
       const resData = data?.fleets_vehicle_class;
 
       if (resData) {
@@ -718,7 +764,7 @@ const getReservationAttempt = asyncHandler(async (req, res) => {
             },
           },
           image: resData.images?.[0]?.public_link || resData.public_image_link,
-          features:resData.features,
+          features: resData.features,
           daily_rate: parseFloat(resData.active_rates?.[0]?.daily_rate || 0),
           available_on_website: resData.available_on_website,
           active: resData.active,
