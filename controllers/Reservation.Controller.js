@@ -418,10 +418,10 @@ const getAdditionalCharges = asyncHandler(async (req, res) => {
             pick_up_time,
             return_date,
             return_time,
-            // pick_up_location,
-            // return_location,
+            pick_up_location,
+            return_location,
             // brand_id: Number(brand_id),
-            // vehicle_class_id: Number(vehicle_class_id),
+            vehicle_class_id: Number(vehicle_class_id),
           }
         );
         console.log("Reservation updated vehicle:", reservationUpdate?.data);
@@ -660,7 +660,7 @@ const confirmReservation = asyncHandler(async (req, res) => {
       reservation.reservation_id = id;
       reservation.isConformed = true;
       await reservation.save();
-      const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
+      // const res = await hqApi.post(`/car-rental/reservations/${id}/pending`);
     }
 
     res.status(200).json(response?.data);
