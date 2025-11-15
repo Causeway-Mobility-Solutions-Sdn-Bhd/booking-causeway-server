@@ -36,9 +36,10 @@ const getAllReservations = asyncHandler(async (req, res) => {
 
     const hqReservations = response?.data?.data || [];
 
-    const validReservations = hqReservations.filter(
-      (r) => r.status?.toLowerCase() !== "pending"
-    );
+    // const validReservations = hqReservations.filter(
+    //   (r) => r.status?.toLowerCase() !== "pending"
+    // );
+    const validReservations = hqReservations;
     const reservationIds = validReservations.map((r) => r.id);
     const attempts = await ReservationAttempt.find({
       reservation_id: { $in: reservationIds },
@@ -100,7 +101,9 @@ const getAllReservations = asyncHandler(async (req, res) => {
     });
 
     const bookings = {
-      upcoming: formattedReservations.filter((b) => b.status === "open"),
+      upcoming: formattedReservations.filter(
+        (b) => b.status === "open" || b.status === "pending"
+      ),
       completed: formattedReservations.filter((b) => b.status === "completed"),
       cancelled: formattedReservations.filter((b) => b.status === "cancelled"),
     };
@@ -293,7 +296,9 @@ const updateAddons = asyncHandler(async (req, res) => {
     }
 
     if (!Array.isArray(additional_charges) || additional_charges.length === 0) {
-      return res.status(400).json({ message: "At least one additional charge is required" });
+      return res
+        .status(400)
+        .json({ message: "At least one additional charge is required" });
     }
 
     const payload = new URLSearchParams();
@@ -316,11 +321,11 @@ const updateAddons = asyncHandler(async (req, res) => {
     console.error("Error updating additional charges:", error);
     res.status(error.response?.status || 500).json({
       success: false,
-      message: error.response?.data?.message || "Failed to update additional charges",
+      message:
+        error.response?.data?.message || "Failed to update additional charges",
     });
   }
 });
-
 
 const cancelBooking = asyncHandler(async (req, res) => {
   try {
@@ -509,5 +514,5 @@ module.exports = {
   cancelBooking,
   findBooking,
   rebookReservation,
-  updateAddons
+  updateAddons,
 };
